@@ -1,0 +1,83 @@
+{
+  "Description": "This template creates a VPC with 2 public and private subnet",
+  "Parameters": {
+    "Environment": {
+      "Type": "String",
+      "Default": "Development",
+      "Description": "Describe the environment (e.g. development, production)"
+    },
+    "AvailabilityZone1": {
+      "Type": "List<AWS::EC2::AvailabilityZone::Name>",
+      "Description": "Select the first availability zone."
+    },
+    "AvailabilityZone2": {
+      "Type": "List<AWS::EC2::AvailabilityZone::Name>",
+      "Description": "Select the second availability zone."
+    }
+  },
+  "Resources": {
+    "BasicVPC": {
+      "Type": "AWS::EC2::VPC",
+      "Properties": {
+        "CidrBlock": "10.0.0.0/16",
+        "EnableDnsSupport": "true",
+        "EnableDnsHostnames": "true",
+        "Tags": [
+          { "Key": "CF-Stack", "Value": { "Ref": "AWS::StackName" } },
+          { "Key": "Environment", "Value": { "Ref": "Environment" } }
+        ]
+      }
+    },
+    "PublicSubnet1": {
+      "Type": "AWS::EC2::Subnet",
+      "Properties": {
+        "VpcId": { "Ref": "BasicVPC" },
+        "CidrBlock": "10.0.0.0/25",
+        "AvailabilityZone": { "Ref": "AvailabilityZone1" },
+        "Tags": [
+          { "Key": "CF-Stack", "Value": { "Ref": "AWS::StackName" } },
+          { "Key": "Environment", "Value": { "Ref": "Environment" } }
+        ]
+      }
+    },
+    "PublicSubnet2": {
+      "Type": "AWS::EC2::Subnet",
+      "Properties": {
+        "VpcId": { "Ref": "BasicVPC" },
+        "CidrBlock": "10.0.0.128/25",
+        "AvailabilityZone": { "Ref": "AvailabilityZone2" },
+        "Tags": [
+          { "Key": "CF-Stack", "Value": { "Ref": "AWS::StackName" } },
+          { "Key": "Environment", "Value": { "Ref": "Environment" } }
+        ]
+      }
+    },
+    "PrivateSubnet1": {
+      "Type": "AWS::EC2::Subnet",
+      "Properties": {
+        "VpcId": { "Ref": "BasicVPC" },
+        "CidrBlock": "10.0.1.0/25",
+        "AvailabilityZone": { "Ref": "AvailabilityZone1" },
+        "Tags": [
+          { "Key": "CF-Stack", "Value": { "Ref": "AWS::StackName" } },
+          { "Key": "Environment", "Value": { "Ref": "Environment" } }
+        ]
+      }
+    },
+    "PrivateSubnet2": {
+      "Type": "AWS::EC2::Subnet",
+      "Properties": {
+        "VpcId": { "Ref": "BasicVPC" },
+        "CidrBlock": "10.0.1.128/25",
+        "AvailabilityZone": { "Ref": "AvailabilityZone2" },
+        "Tags": [
+          { "Key": "CF-Stack", "Value": { "Ref": "AWS::StackName" } },
+          { "Key": "Environment", "Value": { "Ref": "Environment" } }
+        ]
+      }
+    }
+  },
+  "Output": {
+    "VPC-ID": { "Value": { "Ref": "BasicVPC" } }
+  }
+}
