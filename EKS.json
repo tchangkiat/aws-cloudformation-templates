@@ -1,0 +1,109 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Parameters": {
+    "Environment": {
+      "Type": "String",
+      "Default": "Development",
+      "Description": "Describe the environment (e.g. development, production)"
+    },
+    "Subnets": {
+      "Type": "List<AWS::EC2::Subnet::Id>",
+      "Description": "Describe the environment (e.g. development, production)"
+    },
+    "SecurityGroups": {
+      "Type": "List<AWS::EC2::SecurityGroup::Id>",
+      "Description": "Select the security groups for your EKS nodes"
+    }
+  },
+  "Resources": {
+    "EKSClusterServiceRole": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "Service": ["eks.amazonaws.com"]
+              },
+              "Action": ["sts:AssumeRole"]
+            }
+          ]
+        },
+        "ManagedPolicyArns": ["arn:aws:iam::aws:policy/AmazonEKSClusterPolicy"]
+      }
+    },
+    "EKSNodeServiceRole": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "Service": ["ec2.amazonaws.com"]
+              },
+              "Action": ["sts:AssumeRole"]
+            }
+          ]
+        },
+        "ManagedPolicyArns": [
+          "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy"
+        ]
+      }
+    },
+    "EKSCluster": {
+      "Type": "AWS::EKS::Cluster",
+      "Properties": {
+        "Name": "TestCluster",
+        "Version": "1.21",
+        "RoleArn": { "Fn::GetAtt": "EKSClusterServiceRole.Arn" },
+        "ResourcesVpcConfig": {
+          "SecurityGroupIds": { "Ref": "SecurityGroups" },
+          "SubnetIds": { "Ref": "Subnets" },
+          "EndpointPublicAccess": false,
+          "EndpointPrivateAccess": true,
+          "PublicAccessCidrs": ["0.0.0.0/0"]
+        },
+        "Logging": {
+          "ClusterLogging": {
+            "EnabledTypes": [
+              {
+                "Type": "api"
+              },
+              {
+                "Type": "audit"
+              }
+            ]
+          }
+        },
+        "Tags": [{ "Key": "Environment", "Value": { "Ref": "Environment" } }]
+      }
+    },
+    "EKSNodeGroup": {
+      "Type": "AWS::EKS::Nodegroup",
+      "Properties": {
+        "ClusterName": { "Ref": "EKSCluster" },
+        "NodegroupName": "EKS Node Group (EC2)",
+        "NodeRole": { "Fn::GetAtt": "EKSNodeServiceRole.Arn" },
+        "ScalingConfig": {
+          "MinSize": 0,
+          "DesiredSize": 2,
+          "MaxSize": 2
+        },
+        "InstanceTypes": ["t3.micro"],
+        "Labels": {
+          "Type": "EC2NodeGroup"
+        },
+        "Subnets": { "Ref": "Subnets" }
+      }
+    }
+  },
+  "Outputs": {
+    "RoleArn": {
+      "Value": { "Fn::GetAtt": "EKSClusterServiceRole.Arn" }
+    }
+  }
+}
