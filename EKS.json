@@ -50,7 +50,8 @@
           ]
         },
         "ManagedPolicyArns": [
-          "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy"
+          "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy",
+          "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
         ]
       }
     },
@@ -64,8 +65,7 @@
           "SecurityGroupIds": { "Ref": "SecurityGroups" },
           "SubnetIds": { "Ref": "Subnets" },
           "EndpointPublicAccess": false,
-          "EndpointPrivateAccess": true,
-          "PublicAccessCidrs": ["0.0.0.0/0"]
+          "EndpointPrivateAccess": true
         },
         "Logging": {
           "ClusterLogging": {
@@ -86,7 +86,6 @@
       "Type": "AWS::EKS::Nodegroup",
       "Properties": {
         "ClusterName": { "Ref": "EKSCluster" },
-        "NodegroupName": "EKS Node Group (EC2)",
         "NodeRole": { "Fn::GetAtt": "EKSNodeServiceRole.Arn" },
         "ScalingConfig": {
           "MinSize": 0,
