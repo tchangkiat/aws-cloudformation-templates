@@ -1,5 +1,5 @@
 {
-  "Description": "This template creates a VPC with 2 public and 2 private subnets",
+  "Description": "This template sets up a basic VPC",
   "Parameters": {
     "Environment": {
       "Type": "String",
@@ -14,9 +14,7 @@
         "CidrBlock": "10.0.0.0/16",
         "EnableDnsSupport": "true",
         "EnableDnsHostnames": "true",
-        "Tags": [
-          { "Key": "Environment", "Value": { "Ref": "Environment" } }
-        ]
+        "Tags": [{ "Key": "Environment", "Value": { "Ref": "Environment" } }]
       }
     },
     "PublicSubnet1": {
@@ -95,12 +93,33 @@
         ]
       }
     },
+    "SecurityGroupSSH": {
+      "Type": "AWS::EC2::SecurityGroup",
+      "Properties": {
+        "GroupDescription": "Allow SSH",
+        "VpcId": { "Ref": "BasicVPC" },
+        "SecurityGroupIngress": [
+          {
+            "IpProtocol": "tcp",
+            "FromPort": 22,
+            "ToPort": 22,
+            "CidrIp": "10.0.0.0/24"
+          }
+        ],
+        "SecurityGroupEgress": [
+          {
+            "IpProtocol": "tcp",
+            "FromPort": 22,
+            "ToPort": 22,
+            "CidrIp": "10.0.0.0/24"
+          }
+        ]
+      }
+    },
     "InternetGateway": {
       "Type": "AWS::EC2::InternetGateway",
       "Properties": {
-        "Tags": [
-          { "Key": "Environment", "Value": { "Ref": "Environment" } }
-        ]
+        "Tags": [{ "Key": "Environment", "Value": { "Ref": "Environment" } }]
       }
     },
     "InternetGatewayAttachment": {
