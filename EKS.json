@@ -65,7 +65,8 @@
           "SecurityGroupIds": { "Ref": "SecurityGroups" },
           "SubnetIds": { "Ref": "Subnets" },
           "EndpointPublicAccess": false,
-          "EndpointPrivateAccess": true
+          "EndpointPrivateAccess": true,
+          "PublicAccessCidrs": ["1.1.1.2/32"]
         },
         "Logging": {
           "ClusterLogging": {
@@ -101,8 +102,11 @@
     }
   },
   "Outputs": {
-    "RoleArn": {
+    "EKSClusterServiceRoleArn": {
       "Value": { "Fn::GetAtt": "EKSClusterServiceRole.Arn" }
+    },
+    "EKSNodeServiceRoleArn": {
+      "Value": { "Fn::GetAtt": "EKSNodeServiceRole.Arn" }
     }
   }
 }
