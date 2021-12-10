@@ -10,13 +10,38 @@
       "Type": "String",
       "Default": "Development",
       "Description": "Describe the environment (e.g. development, production)"
+    },
+    "VPCCIDR": {
+      "Type": "String",
+      "Default": "10.0.0.0/16",
+      "Description": "Enter the CIDR block for the VPC"
+    },
+    "PublicSubnetCIDR1": {
+      "Type": "String",
+      "Default": "10.0.0.0/25",
+      "Description": "Enter the CIDR block for the first public subnet"
+    },
+    "PublicSubnetCIDR2": {
+      "Type": "String",
+      "Default": "10.0.0.128/25",
+      "Description": "nter the CIDR block for the second public subnet"
+    },
+    "PrivateSubnetCIDR1": {
+      "Type": "String",
+      "Default": "10.0.1.0/25",
+      "Description": "Enter the CIDR block for the first private subnet"
+    },
+    "PrivateSubnetCIDR2": {
+      "Type": "String",
+      "Default": "10.0.1.128/25",
+      "Description": "nter the CIDR block for the second private subnet"
     }
   },
   "Resources": {
     "BasicVPC": {
       "Type": "AWS::EC2::VPC",
       "Properties": {
-        "CidrBlock": "10.0.0.0/16",
+        "CidrBlock": { "Ref": "VPCCIDR" },
         "EnableDnsSupport": "true",
         "EnableDnsHostnames": "true",
         "Tags": [
@@ -32,7 +57,7 @@
       "Type": "AWS::EC2::Subnet",
       "Properties": {
         "VpcId": { "Ref": "BasicVPC" },
-        "CidrBlock": "10.0.0.0/25",
+        "CidrBlock": { "Ref": "PublicSubnetCIDR1" },
         "AvailabilityZone": {
           "Fn::Select": [
             "0",
@@ -57,7 +82,7 @@
       "Type": "AWS::EC2::Subnet",
       "Properties": {
         "VpcId": { "Ref": "BasicVPC" },
-        "CidrBlock": "10.0.0.128/25",
+        "CidrBlock": { "Ref": "PublicSubnetCIDR2" },
         "AvailabilityZone": {
           "Fn::Select": [
             "1",
@@ -82,7 +107,7 @@
       "Type": "AWS::EC2::Subnet",
       "Properties": {
         "VpcId": { "Ref": "BasicVPC" },
-        "CidrBlock": "10.0.1.0/25",
+        "CidrBlock": { "Ref": "PrivateSubnetCIDR1" },
         "AvailabilityZone": {
           "Fn::Select": [
             "0",
@@ -107,7 +132,7 @@
       "Type": "AWS::EC2::Subnet",
       "Properties": {
         "VpcId": { "Ref": "BasicVPC" },
-        "CidrBlock": "10.0.1.128/25",
+        "CidrBlock": { "Ref": "PrivateSubnetCIDR2" },
         "AvailabilityZone": {
           "Fn::Select": [
             "1",
