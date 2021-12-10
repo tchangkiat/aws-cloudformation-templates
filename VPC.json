@@ -93,10 +93,10 @@
         ]
       }
     },
-    "SecurityGroupSSH": {
+    "BasicSecurityGroup": {
       "Type": "AWS::EC2::SecurityGroup",
       "Properties": {
-        "GroupDescription": "Allow SSH",
+        "GroupDescription": "Allow SSH and Ping",
         "VpcId": { "Ref": "BasicVPC" },
         "SecurityGroupIngress": [
           {
@@ -107,7 +107,7 @@
           },
           {
             "IpProtocol": "icmp",
-            "FromPort": "8",
+            "FromPort": "-1",
             "ToPort": "-1",
             "CidrIp": "0.0.0.0/0"
           }
