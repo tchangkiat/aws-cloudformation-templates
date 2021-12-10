@@ -103,15 +103,15 @@
             "IpProtocol": "tcp",
             "FromPort": 22,
             "ToPort": 22,
-            "CidrIp": "10.0.0.0/24"
+            "CidrIp": "0.0.0.0/0"
           }
         ],
         "SecurityGroupEgress": [
           {
             "IpProtocol": "tcp",
-            "FromPort": 22,
-            "ToPort": 22,
-            "CidrIp": "10.0.0.0/24"
+            "FromPort": 0,
+            "ToPort": 65535,
+            "CidrIp": "0.0.0.0/0"
           }
         ]
       }
@@ -127,6 +127,34 @@
       "Properties": {
         "InternetGatewayId": { "Ref": "InternetGateway" },
         "VpcId": { "Ref": "BasicVPC" }
+      }
+    },
+    "NATEIP1": {
+      "Type": "AWS::EC2::EIP",
+      "Properties": {
+        "Tags": [{ "Key": "Environment", "Value": { "Ref": "Environment" } }]
+      }
+    },
+    "NATGateway1": {
+      "Type": "AWS::EC2::NatGateway",
+      "Properties": {
+        "AllocationId": { "Fn::GetAtt": ["NATEIP1", "AllocationId"] },
+        "SubnetId": { "Ref": "PublicSubnet1" },
+        "Tags": [{ "Key": "Environment", "Value": { "Ref": "Environment" } }]
+      }
+    },
+    "NATEIP2": {
+      "Type": "AWS::EC2::EIP",
+      "Properties": {
+        "Tags": [{ "Key": "Environment", "Value": { "Ref": "Environment" } }]
+      }
+    },
+    "NATGateway2": {
+      "Type": "AWS::EC2::NatGateway",
+      "Properties": {
+        "AllocationId": { "Fn::GetAtt": ["NATEIP2", "AllocationId"] },
+        "SubnetId": { "Ref": "PublicSubnet2" },
+        "Tags": [{ "Key": "Environment", "Value": { "Ref": "Environment" } }]
       }
     },
     "PublicRouteTable": {
@@ -161,7 +189,7 @@
         "SubnetId": { "Ref": "PublicSubnet2" }
       }
     },
-    "PrivateRouteTable": {
+    "PrivateRouteTable1": {
       "Type": "AWS::EC2::RouteTable",
       "Properties": {
         "VpcId": { "Ref": "BasicVPC" },
@@ -171,17 +199,43 @@
         ]
       }
     },
+    "PrivateRouteTable1Route1": {
+      "Type": "AWS::EC2::Route",
+      "Properties": {
+        "RouteTableId": { "Ref": "PrivateRouteTable1" },
+        "DestinationCidrBlock": "0.0.0.0/0",
+        "NatGatewayId": { "Ref": "NATGateway1" }
+      }
+    },
+    "PrivateRouteTable2": {
+      "Type": "AWS::EC2::RouteTable",
+      "Properties": {
+        "VpcId": { "Ref": "BasicVPC" },
+        "Tags": [
+          { "Key": "Environment", "Value": { "Ref": "Environment" } },
+          { "Key": "RouteTable", "Value": "Private" }
+        ]
+      }
+    },
+    "PrivateRouteTable2Route1": {
+      "Type": "AWS::EC2::Route",
+      "Properties": {
+        "RouteTableId": { "Ref": "PrivateRouteTable2" },
+        "DestinationCidrBlock": "0.0.0.0/0",
+        "NatGatewayId": { "Ref": "NATGateway2" }
+      }
+    },
     "PrivateSubnet1RouteTableAssociation": {
       "Type": "AWS::EC2::SubnetRouteTableAssociation",
       "Properties": {
-        "RouteTableId": { "Ref": "PrivateRouteTable" },
+        "RouteTableId": { "Ref": "PrivateRouteTable1" },
         "SubnetId": { "Ref": "PrivateSubnet1" }
       }
     },
     "PrivateSubnet2RouteTableAssociation": {
       "Type": "AWS::EC2::SubnetRouteTableAssociation",
       "Properties": {
-        "RouteTableId": { "Ref": "PrivateRouteTable" },
+        "RouteTableId": { "Ref": "PrivateRouteTable2" },
         "SubnetId": { "Ref": "PrivateSubnet2" }
       }
     }

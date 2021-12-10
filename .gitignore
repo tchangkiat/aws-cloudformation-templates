@@ -1,0 +1,23 @@
+.*cache
+*.log
+cache/*
+backup
+_files
+log
+log/**/*
+.monitor
+Forwardfile
+
+# OS X Files
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*.lnk
+*~
+
+# NODE
+.node_modules
+node_modules
+*/node_modules
+/node_modules/*
