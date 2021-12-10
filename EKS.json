@@ -1,5 +1,6 @@
 {
   "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "Creates an EKS cluster with a managed node group",
   "Parameters": {
     "Environment": {
       "Type": "String",
