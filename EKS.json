@@ -2,6 +2,11 @@
   "AWSTemplateFormatVersion": "2010-09-09",
   "Description": "Creates an EKS cluster with a managed node group",
   "Parameters": {
+    "Project": {
+      "Type": "String",
+      "Default": "MyProject",
+      "Description": "Enter a project name"
+    },
     "Environment": {
       "Type": "String",
       "Default": "Development",
@@ -82,7 +87,7 @@
             ]
           }
         },
-        "Tags": [{ "Key": "Environment", "Value": { "Ref": "Environment" } }]
+        "Tags": [{ "Key": "Name", "Value": { "Fn::Join" : [ "-", [{"Ref":"Project" }, "EKSCluster" ] ] } }, { "Key": "Environment", "Value": { "Ref": "Environment" } }]
       }
     },
     "EKSNodeGroup": {
