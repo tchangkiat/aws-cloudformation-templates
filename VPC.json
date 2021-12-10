@@ -19,7 +19,13 @@
         "CidrBlock": "10.0.0.0/16",
         "EnableDnsSupport": "true",
         "EnableDnsHostnames": "true",
-        "Tags": [{ "Key": "Name", "Value": { "Fn::Join" : [ "-", [{"Ref":"Project" }, "VPC" ] ] } }, { "Key": "Environment", "Value": { "Ref": "Environment" } }]
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": { "Fn::Join": ["-", [{ "Ref": "Project" }, "VPC"]] }
+          },
+          { "Key": "Environment", "Value": { "Ref": "Environment" } }
+        ]
       }
     },
     "PublicSubnet1": {
@@ -36,7 +42,12 @@
           ]
         },
         "Tags": [
-          { "Key": "Name", "Value": { "Fn::Join" : [ "-", [{"Ref":"Project" }, "PublicSubnet1" ] ] } },
+          {
+            "Key": "Name",
+            "Value": {
+              "Fn::Join": ["-", [{ "Ref": "Project" }, "PublicSubnet1"]]
+            }
+          },
           { "Key": "Environment", "Value": { "Ref": "Environment" } },
           { "Key": "Subnet", "Value": "Public" }
         ]
@@ -56,7 +67,12 @@
           ]
         },
         "Tags": [
-          { "Key": "Name", "Value": { "Fn::Join" : [ "-", [{"Ref":"Project" }, "PublicSubnet2" ] ] } },
+          {
+            "Key": "Name",
+            "Value": {
+              "Fn::Join": ["-", [{ "Ref": "Project" }, "PublicSubnet2"]]
+            }
+          },
           { "Key": "Environment", "Value": { "Ref": "Environment" } },
           { "Key": "Subnet", "Value": "Public" }
         ]
@@ -76,7 +92,12 @@
           ]
         },
         "Tags": [
-          { "Key": "Name", "Value": { "Fn::Join" : [ "-", [{"Ref":"Project" }, "PrivateSubnet1" ] ] } },
+          {
+            "Key": "Name",
+            "Value": {
+              "Fn::Join": ["-", [{ "Ref": "Project" }, "PrivateSubnet1"]]
+            }
+          },
           { "Key": "Environment", "Value": { "Ref": "Environment" } },
           { "Key": "Subnet", "Value": "Private" }
         ]
@@ -96,7 +117,12 @@
           ]
         },
         "Tags": [
-          { "Key": "Name", "Value": { "Fn::Join" : [ "-", [{"Ref":"Project" }, "PrivateSubnet2" ] ] } },
+          {
+            "Key": "Name",
+            "Value": {
+              "Fn::Join": ["-", [{ "Ref": "Project" }, "PrivateSubnet2"]]
+            }
+          },
           { "Key": "Environment", "Value": { "Ref": "Environment" } },
           { "Key": "Subnet", "Value": "Private" }
         ]
@@ -134,7 +160,13 @@
     "InternetGateway": {
       "Type": "AWS::EC2::InternetGateway",
       "Properties": {
-        "Tags": [{ "Key": "Name", "Value": { "Fn::Join" : [ "-", [{"Ref":"Project" }, "IGW" ] ] } }, { "Key": "Environment", "Value": { "Ref": "Environment" } }]
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": { "Fn::Join": ["-", [{ "Ref": "Project" }, "IGW"]] }
+          },
+          { "Key": "Environment", "Value": { "Ref": "Environment" } }
+        ]
       }
     },
     "InternetGatewayAttachment": {
@@ -147,7 +179,13 @@
     "NATEIP1": {
       "Type": "AWS::EC2::EIP",
       "Properties": {
-        "Tags": [{ "Key": "Name", "Value": { "Fn::Join" : [ "-", [{"Ref":"Project" }, "EIP1" ] ] } }, { "Key": "Environment", "Value": { "Ref": "Environment" } }]
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": { "Fn::Join": ["-", [{ "Ref": "Project" }, "EIP1"]] }
+          },
+          { "Key": "Environment", "Value": { "Ref": "Environment" } }
+        ]
       }
     },
     "NATGateway1": {
@@ -155,13 +193,25 @@
       "Properties": {
         "AllocationId": { "Fn::GetAtt": ["NATEIP1", "AllocationId"] },
         "SubnetId": { "Ref": "PublicSubnet1" },
-        "Tags": [{ "Key": "Name", "Value": { "Fn::Join" : [ "-", [{"Ref":"Project" }, "NGW1" ] ] } }, { "Key": "Environment", "Value": { "Ref": "Environment" } }]
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": { "Fn::Join": ["-", [{ "Ref": "Project" }, "NGW1"]] }
+          },
+          { "Key": "Environment", "Value": { "Ref": "Environment" } }
+        ]
       }
     },
     "NATEIP2": {
       "Type": "AWS::EC2::EIP",
       "Properties": {
-        "Tags": [{ "Key": "Name", "Value": { "Fn::Join" : [ "-", [{"Ref":"Project" }, "EIP2" ] ] } }, { "Key": "Environment", "Value": { "Ref": "Environment" } }]
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": { "Fn::Join": ["-", [{ "Ref": "Project" }, "EIP2"]] }
+          },
+          { "Key": "Environment", "Value": { "Ref": "Environment" } }
+        ]
       }
     },
     "NATGateway2": {
@@ -169,7 +219,13 @@
       "Properties": {
         "AllocationId": { "Fn::GetAtt": ["NATEIP2", "AllocationId"] },
         "SubnetId": { "Ref": "PublicSubnet2" },
-        "Tags": [{ "Key": "Name", "Value": { "Fn::Join" : [ "-", [{"Ref":"Project" }, "NGW2" ] ] } }, { "Key": "Environment", "Value": { "Ref": "Environment" } }]
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": { "Fn::Join": ["-", [{ "Ref": "Project" }, "NGW2"]] }
+          },
+          { "Key": "Environment", "Value": { "Ref": "Environment" } }
+        ]
       }
     },
     "PublicRouteTable": {
@@ -177,7 +233,12 @@
       "Properties": {
         "VpcId": { "Ref": "BasicVPC" },
         "Tags": [
-          { "Key": "Name", "Value": { "Fn::Join" : [ "-", [{"Ref":"Project" }, "PublicRouteTable" ] ] } },
+          {
+            "Key": "Name",
+            "Value": {
+              "Fn::Join": ["-", [{ "Ref": "Project" }, "PublicRouteTable"]]
+            }
+          },
           { "Key": "Environment", "Value": { "Ref": "Environment" } }
         ]
       }
@@ -209,7 +270,12 @@
       "Properties": {
         "VpcId": { "Ref": "BasicVPC" },
         "Tags": [
-          { "Key": "Name", "Value": { "Fn::Join" : [ "-", [{"Ref":"Project" }, "PrivateRouteTable1" ] ] } },
+          {
+            "Key": "Name",
+            "Value": {
+              "Fn::Join": ["-", [{ "Ref": "Project" }, "PrivateRouteTable1"]]
+            }
+          },
           { "Key": "Environment", "Value": { "Ref": "Environment" } }
         ]
       }
@@ -227,7 +293,12 @@
       "Properties": {
         "VpcId": { "Ref": "BasicVPC" },
         "Tags": [
-          { "Key": "Name", "Value": { "Fn::Join" : [ "-", [{"Ref":"Project" }, "PrivateRouteTable2" ] ] } },
+          {
+            "Key": "Name",
+            "Value": {
+              "Fn::Join": ["-", [{ "Ref": "Project" }, "PrivateRouteTable2"]]
+            }
+          },
           { "Key": "Environment", "Value": { "Ref": "Environment" } }
         ]
       }

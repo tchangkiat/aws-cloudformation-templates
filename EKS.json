@@ -65,7 +65,7 @@
     "EKSCluster": {
       "Type": "AWS::EKS::Cluster",
       "Properties": {
-        "Name": "TestCluster",
+        "Name": { "Fn::Join": ["-", [{ "Ref": "Project" }, "Cluster"]] },
         "Version": "1.21",
         "RoleArn": { "Fn::GetAtt": "EKSClusterServiceRole.Arn" },
         "ResourcesVpcConfig": {
@@ -87,7 +87,13 @@
             ]
           }
         },
-        "Tags": [{ "Key": "Name", "Value": { "Fn::Join" : [ "-", [{"Ref":"Project" }, "EKSCluster" ] ] } }, { "Key": "Environment", "Value": { "Ref": "Environment" } }]
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": { "Fn::Join": ["-", [{ "Ref": "Project" }, "EKSCluster"]] }
+          },
+          { "Key": "Environment", "Value": { "Ref": "Environment" } }
+        ]
       }
     },
     "EKSNodeGroup": {
