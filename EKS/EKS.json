@@ -12,13 +12,29 @@
       "Default": "Development",
       "Description": "Describe the environment (e.g. development, production)"
     },
-    "Subnets": {
+    "EKSNodesSubnets": {
       "Type": "List<AWS::EC2::Subnet::Id>",
-      "Description": "Describe the environment (e.g. development, production)"
+      "Description": "Select the PRIVATE subnet(s) for the EKS nodes"
     },
-    "SecurityGroups": {
+    "EKSNodesSecurityGroups": {
       "Type": "List<AWS::EC2::SecurityGroup::Id>",
-      "Description": "Select the security groups for your EKS nodes"
+      "Description": "Select the security groups for the EKS nodes"
+    },
+    "BastionHostImageId": {
+      "Type": "AWS::EC2::Image::Id",
+      "Description": "Enter the AMI Id (prefably Amazon Linux 2) for the bastion host"
+    },
+    "BastionHostKeyPair": {
+      "Type": "AWS::EC2::KeyPair::KeyName",
+      "Description": "Select the key pair for the EKS bastion host"
+    },
+    "BastionHostSubnet": {
+      "Type": "AWS::EC2::Subnet::Id",
+      "Description": "Select a PUBLIC subnet for the EKS bastion host"
+    },
+    "BastionHostSecurityGroup": {
+      "Type": "AWS::EC2::SecurityGroup::Id",
+      "Description": "Select the security group for the EKS bastion host"
     }
   },
   "Resources": {
@@ -69,8 +85,8 @@
         "Version": "1.21",
         "RoleArn": { "Fn::GetAtt": "EKSClusterServiceRole.Arn" },
         "ResourcesVpcConfig": {
-          "SecurityGroupIds": { "Ref": "SecurityGroups" },
-          "SubnetIds": { "Ref": "Subnets" },
+          "SecurityGroupIds": { "Ref": "EKSNodesSecurityGroups" },
+          "SubnetIds": { "Ref": "EKSNodesSubnets" },
           "EndpointPublicAccess": false,
           "EndpointPrivateAccess": true,
           "PublicAccessCidrs": ["1.1.1.2/32"]
@@ -110,16 +126,34 @@
         "Labels": {
           "Type": "EC2NodeGroup"
         },
-        "Subnets": { "Ref": "Subnets" }
+        "Subnets": { "Ref": "EKSNodesSubnets" }
+      }
+    },
+    "EKSBastionHost" : {
+      "Type" : "AWS::EC2::Instance",
+      "Properties" : {
+        "ImageId" : { "Ref": "BastionHostImageId" },
+        "InstanceType": "t3.micro",
+        "KeyName" : { "Ref" : "BastionHostKeyPair" },
+        "NetworkInterfaces": [ {
+          "AssociatePublicIpAddress": "true",
+          "DeviceIndex": "0",
+          "GroupSet": [{ "Fn::GetAtt": "EKSCluster.ClusterSecurityGroupId" }, { "Ref": "BastionHostSecurityGroup" }],
+          "SubnetId": { "Ref" : "BastionHostSubnet" }
+        } ],
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": { "Fn::Join": ["-", [{ "Ref": "Project" }, "EKSBastionHost"]] }
+          },
+          { "Key": "Environment", "Value": { "Ref": "Environment" } }
+        ]
       }
     }
   },
   "Outputs": {
-    "EKSClusterServiceRoleArn": {
-      "Value": { "Fn::GetAtt": "EKSClusterServiceRole.Arn" }
-    },
-    "EKSNodeServiceRoleArn": {
-      "Value": { "Fn::GetAtt": "EKSNodeServiceRole.Arn" }
+    "EKSBastionHostPublicIP": {
+      "Value": { "Fn::GetAtt": "EKSBastionHost.PublicIp" }
     },
     "EKSClusterDefaultSecurityGroupId": {
       "Value": { "Fn::GetAtt": "EKSCluster.ClusterSecurityGroupId" }
