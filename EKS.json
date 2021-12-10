@@ -65,7 +65,7 @@
     "EKSCluster": {
       "Type": "AWS::EKS::Cluster",
       "Properties": {
-        "Name": { "Fn::Join": ["-", [{ "Ref": "Project" }, "Cluster"]] },
+        "Name": { "Ref": "Project" },
         "Version": "1.21",
         "RoleArn": { "Fn::GetAtt": "EKSClusterServiceRole.Arn" },
         "ResourcesVpcConfig": {
@@ -120,6 +120,9 @@
     },
     "EKSNodeServiceRoleArn": {
       "Value": { "Fn::GetAtt": "EKSNodeServiceRole.Arn" }
+    },
+    "EKSClusterDefaultSecurityGroupId": {
+      "Value": { "Fn::GetAtt": "EKSCluster.ClusterSecurityGroupId" }
     }
   }
 }
