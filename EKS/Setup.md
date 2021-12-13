@@ -29,7 +29,7 @@ Policy Definition:
 ## CloudFormation
 
 Use the IAM user created above to:
-1. Create a stack with VPC.json
+1. Create a stack with VPC.json in Network folder
 2. Create a stack with EKS.json, with parameters referencing subnets and security groups created by VPC.json
 
 ## Bastion Host

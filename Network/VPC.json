@@ -24,7 +24,7 @@
     "PublicSubnetCIDR2": {
       "Type": "String",
       "Default": "10.0.0.128/25",
-      "Description": "nter the CIDR block for the second public subnet"
+      "Description": "Enter the CIDR block for the second public subnet"
     },
     "PrivateSubnetCIDR1": {
       "Type": "String",
@@ -34,7 +34,7 @@
     "PrivateSubnetCIDR2": {
       "Type": "String",
       "Default": "10.0.1.128/25",
-      "Description": "nter the CIDR block for the second private subnet"
+      "Description": "Enter the CIDR block for the second private subnet"
     }
   },
   "Resources": {
