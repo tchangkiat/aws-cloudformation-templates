@@ -1,5 +1,5 @@
 {
-  "Description": "This template sets up a basic VPC",
+  "Description": "This template sets up a VPC with 2 public and 2 private subnets",
   "Parameters": {
     "Project": {
       "Type": "String",
@@ -38,7 +38,7 @@
     }
   },
   "Resources": {
-    "BasicVPC": {
+    "VPC": {
       "Type": "AWS::EC2::VPC",
       "Properties": {
         "CidrBlock": { "Ref": "VPCCIDR" },
@@ -56,7 +56,7 @@
     "PublicSubnet1": {
       "Type": "AWS::EC2::Subnet",
       "Properties": {
-        "VpcId": { "Ref": "BasicVPC" },
+        "VpcId": { "Ref": "VPC" },
         "CidrBlock": { "Ref": "PublicSubnetCIDR1" },
         "AvailabilityZone": {
           "Fn::Select": [
@@ -81,7 +81,7 @@
     "PublicSubnet2": {
       "Type": "AWS::EC2::Subnet",
       "Properties": {
-        "VpcId": { "Ref": "BasicVPC" },
+        "VpcId": { "Ref": "VPC" },
         "CidrBlock": { "Ref": "PublicSubnetCIDR2" },
         "AvailabilityZone": {
           "Fn::Select": [
@@ -106,7 +106,7 @@
     "PrivateSubnet1": {
       "Type": "AWS::EC2::Subnet",
       "Properties": {
-        "VpcId": { "Ref": "BasicVPC" },
+        "VpcId": { "Ref": "VPC" },
         "CidrBlock": { "Ref": "PrivateSubnetCIDR1" },
         "AvailabilityZone": {
           "Fn::Select": [
@@ -131,7 +131,7 @@
     "PrivateSubnet2": {
       "Type": "AWS::EC2::Subnet",
       "Properties": {
-        "VpcId": { "Ref": "BasicVPC" },
+        "VpcId": { "Ref": "VPC" },
         "CidrBlock": { "Ref": "PrivateSubnetCIDR2" },
         "AvailabilityZone": {
           "Fn::Select": [
@@ -157,7 +157,7 @@
       "Type": "AWS::EC2::SecurityGroup",
       "Properties": {
         "GroupDescription": "Allow SSH and Ping",
-        "VpcId": { "Ref": "BasicVPC" },
+        "VpcId": { "Ref": "VPC" },
         "SecurityGroupIngress": [
           {
             "IpProtocol": "tcp",
@@ -198,7 +198,7 @@
       "Type": "AWS::EC2::VPCGatewayAttachment",
       "Properties": {
         "InternetGatewayId": { "Ref": "InternetGateway" },
-        "VpcId": { "Ref": "BasicVPC" }
+        "VpcId": { "Ref": "VPC" }
       }
     },
     "NATEIP1": {
@@ -256,7 +256,7 @@
     "PublicRouteTable": {
       "Type": "AWS::EC2::RouteTable",
       "Properties": {
-        "VpcId": { "Ref": "BasicVPC" },
+        "VpcId": { "Ref": "VPC" },
         "Tags": [
           {
             "Key": "Name",
@@ -293,7 +293,7 @@
     "PrivateRouteTable1": {
       "Type": "AWS::EC2::RouteTable",
       "Properties": {
-        "VpcId": { "Ref": "BasicVPC" },
+        "VpcId": { "Ref": "VPC" },
         "Tags": [
           {
             "Key": "Name",
@@ -316,7 +316,7 @@
     "PrivateRouteTable2": {
       "Type": "AWS::EC2::RouteTable",
       "Properties": {
-        "VpcId": { "Ref": "BasicVPC" },
+        "VpcId": { "Ref": "VPC" },
         "Tags": [
           {
             "Key": "Name",
@@ -352,6 +352,10 @@
     }
   },
   "Outputs": {
-    "VpcId": { "Value": { "Ref": "BasicVPC" } }
+    "VpcId": { "Value": { "Ref": "VPC" } },
+    "PublicSubnet1Id": { "Value": { "Ref": "PublicSubnet1" } },
+    "PublicSubnet2Id": { "Value": { "Ref": "PublicSubnet2" } },
+    "PrivateSubnet1Id": { "Value": { "Ref": "PrivateSubnet1" } },
+    "PrivateSubnet2Id": { "Value": { "Ref": "PrivateSubnet2" } }
   }
 }
