@@ -24,30 +24,7 @@
       "Properties": {
         "RepositoryName": { "Ref": "Project" },
         "LifecyclePolicy": {
-          "LifecyclePolicyText": {
-            "rules": [
-              {
-                "rulePriority": 1,
-                "description": "Keep only tagged images",
-                "selection": {
-                  "tagStatus": "untagged"
-                },
-                "action": {
-                  "type": "expire"
-                }
-              },
-              {
-                "rulePriority": 2,
-                "description": "Keep only 5 images",
-                "selection": {
-                  "tagStatus": "any",
-                  "countType": "imageCountMoreThan",
-                  "countNumber": 5
-                },
-                "action": { "type": "expire" }
-              }
-            ]
-          }
+          "LifecyclePolicyText": "{\n            \"rules\": [\n              {\n                \"rulePriority\": 1,\n                \"description\": \"Keep only 5 images\",\n                \"selection\": {\n                  \"tagStatus\": \"any\",\n                  \"countType\": \"imageCountMoreThan\",\n                  \"countNumber\": 5\n                },\n                \"action\": { \"type\": \"expire\" }\n              }\n            ]\n          }"
         }
       }
     },
@@ -119,6 +96,7 @@
           "Type": "LINUX_CONTAINER",
           "ComputeType": "BUILD_GENERAL1_SMALL",
           "Image": "aws/codebuild/amazonlinux2-x86_64-standard:3.0",
+          "PrivilegedMode": true,
           "EnvironmentVariables": [
             {
               "Name": "AWS_DEFAULT_REGION",
@@ -141,6 +119,11 @@
               "Value": "latest"
             }
           ]
+        },
+        "LogsConfig": {
+          "CloudWatchLogs": {
+            "Status" : "DISABLED"
+          }          
         },
         "Source": {
           "GitCloneDepth": 1,
