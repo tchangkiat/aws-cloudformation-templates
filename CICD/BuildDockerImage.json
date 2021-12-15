@@ -9,118 +9,152 @@
     },
     "Project": {
       "Type": "String",
-      "Default": "MyProject",
+      "Default": "sample-express-api",
       "Description": "Enter a project name"
     },
     "RepositoryURL": {
       "Type": "String",
       "Default": "https://github.com/tchangkiat/sample-express-api",
       "Description": "Enter the URL of the public GitHub repository"
-    },
-    "ECRImageRepo": {
-      "Type": "String",
-      "Default": "sample-express-api",
-      "Description": "Enter the name of the ECR repository"
     }
   },
-  "CodeBuildServiceRole": {
-    "Type": "AWS::IAM::Role",
-    "Properties": {
-      "RoleName": "CodeBuildServiceRole",
-      "AssumeRolePolicyDocument": {
-        "Version": "2012-10-17",
-        "Statement": [
-          {
-            "Effect": "Allow",
-            "Principal": {
-              "Service": ["codebuild.amazonaws.com"]
-            },
-            "Action": ["sts:AssumeRole"]
-          }
-        ]
-      },
-      "Path": "/",
-      "Policies": [
-        {
-          "PolicyName": "CodeBuildServiceRolePolicy",
-          "PolicyDocument": {
-            "Version": "2012-10-17",
-            "Statement": [
+  "Resources": {
+    "ImageRepository": {
+      "Type": "AWS::ECR::Repository",
+      "Properties": {
+        "RepositoryName": { "Ref": "Project" },
+        "LifecyclePolicy": {
+          "LifecyclePolicyText": {
+            "rules": [
               {
-                "Effect": "Allow",
-                "Action": [
-                  "ecr:BatchCheckLayerAvailability",
-                  "ecr:CompleteLayerUpload",
-                  "ecr:GetAuthorizationToken",
-                  "ecr:InitiateLayerUpload",
-                  "ecr:PutImage",
-                  "ecr:UploadLayerPart"
-                ],
-                "Resource": "*"
+                "rulePriority": 1,
+                "description": "Keep only tagged images",
+                "selection": {
+                  "tagStatus": "untagged"
+                },
+                "action": {
+                  "type": "expire"
+                }
               },
               {
-                "Effect": "Allow",
-                "Action": [
-                  "codebuild:CreateReportGroup",
-                  "codebuild:CreateReport",
-                  "codebuild:UpdateReport",
-                  "codebuild:BatchPutTestCases",
-                  "codebuild:BatchPutCodeCoverages",
-                  "codebuild:StartBuild",
-                  "codebuild:StopBuild",
-                  "codebuild:RetryBuild"
-                ],
-                "Resource": "*"
+                "rulePriority": 2,
+                "description": "Keep only 5 images",
+                "selection": {
+                  "tagStatus": "any",
+                  "countType": "imageCountMoreThan",
+                  "countNumber": 5
+                },
+                "action": { "type": "expire" }
               }
             ]
           }
         }
-      ]
-    }
-  },
-  "CodeBuildProject": {
-    "Type": "AWS::CodeBuild::Project",
-    "Properties": {
-      "Name": { "Ref": "Project" },
-      "Description": "Build Docker image from a public GitHub repository and publish to ECR",
-      "ServiceRole": { "Fn::GetAtt": ["CodeBuildServiceRole", "Arn"] },
-      "Artifacts": {
-        "Type": "no_artifacts"
-      },
-      "Environment": {
-        "Type": "LINUX_CONTAINER",
-        "ComputeType": "BUILD_GENERAL1_SMALL",
-        "Image": "aws/codebuild/amazonlinux2-x86_64-standard:3.0",
-        "EnvironmentVariables": [
+      }
+    },
+    "CodeBuildServiceRole": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "RoleName": "CodeBuildServiceRole",
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "Service": ["codebuild.amazonaws.com"]
+              },
+              "Action": ["sts:AssumeRole"]
+            }
+          ]
+        },
+        "Path": "/",
+        "Policies": [
           {
-            "Name": "AWS_DEFAULT_REGION",
-            "Type": "PLAINTEXT",
-            "Value": { "Ref": "AWS::Region" }
-          },
-          {
-            "Name": "AWS_ACCOUNT_ID",
-            "Type": "PLAINTEXT",
-            "Value": { "Ref": "AWS::AccountId" }
-          },
-          {
-            "Name": "IMAGE_REPO",
-            "Type": "PLAINTEXT",
-            "Value": { "Ref": "ECRImageRepo" }
-          },
-          {
-            "Name": "IMAGE_TAG",
-            "Type": "PLAINTEXT",
-            "Value": "latest"
+            "PolicyName": "CodeBuildServiceRolePolicy",
+            "PolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "ecr:BatchCheckLayerAvailability",
+                    "ecr:CompleteLayerUpload",
+                    "ecr:GetAuthorizationToken",
+                    "ecr:InitiateLayerUpload",
+                    "ecr:PutImage",
+                    "ecr:UploadLayerPart"
+                  ],
+                  "Resource": "*"
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "codebuild:CreateReportGroup",
+                    "codebuild:CreateReport",
+                    "codebuild:UpdateReport",
+                    "codebuild:BatchPutTestCases",
+                    "codebuild:BatchPutCodeCoverages",
+                    "codebuild:StartBuild",
+                    "codebuild:StopBuild",
+                    "codebuild:RetryBuild"
+                  ],
+                  "Resource": "*"
+                }
+              ]
+            }
           }
         ]
-      },
-      "Source": {
-        "GitCloneDepth": 1,
-        "Location": { "Ref": "RepositoryURL" },
-        "Type": "GITHUB"
-      },
-      "TimeoutInMinutes": 5,
-      "Tags": [{ "Key": "Environment", "Value": { "Ref": "Environment" } }]
+      }
+    },
+    "CodeBuildProject": {
+      "Type": "AWS::CodeBuild::Project",
+      "Properties": {
+        "Name": { "Ref": "Project" },
+        "Description": "Build Docker image from a public GitHub repository and publish to ECR",
+        "ServiceRole": { "Fn::GetAtt": ["CodeBuildServiceRole", "Arn"] },
+        "Artifacts": {
+          "Type": "no_artifacts"
+        },
+        "Environment": {
+          "Type": "LINUX_CONTAINER",
+          "ComputeType": "BUILD_GENERAL1_SMALL",
+          "Image": "aws/codebuild/amazonlinux2-x86_64-standard:3.0",
+          "EnvironmentVariables": [
+            {
+              "Name": "AWS_DEFAULT_REGION",
+              "Type": "PLAINTEXT",
+              "Value": { "Ref": "AWS::Region" }
+            },
+            {
+              "Name": "AWS_ACCOUNT_ID",
+              "Type": "PLAINTEXT",
+              "Value": { "Ref": "AWS::AccountId" }
+            },
+            {
+              "Name": "IMAGE_REPO",
+              "Type": "PLAINTEXT",
+              "Value": { "Ref": "ImageRepository" }
+            },
+            {
+              "Name": "IMAGE_TAG",
+              "Type": "PLAINTEXT",
+              "Value": "latest"
+            }
+          ]
+        },
+        "Source": {
+          "GitCloneDepth": 1,
+          "Location": { "Ref": "RepositoryURL" },
+          "Type": "GITHUB"
+        },
+        "TimeoutInMinutes": 5,
+        "Tags": [{ "Key": "Environment", "Value": { "Ref": "Environment" } }]
+      }
+    }
+  },
+  "Outputs": {
+    "ImageRepositoryURL": {
+      "Value": { "Fn::GetAtt": "ImageRepository.RepositoryUri" }
     }
   }
 }
