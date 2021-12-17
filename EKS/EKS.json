@@ -12,17 +12,17 @@
       "Default": "Development",
       "Description": "Describe the environment (e.g. development, production)"
     },
+    "VPC": {
+      "Type": "AWS::EC2::VPC::Id",
+      "Description": "Select a VPC for the cluster"
+    },
     "EKSNodesSubnets": {
       "Type": "List<AWS::EC2::Subnet::Id>",
-      "Description": "Select the PRIVATE subnet(s) for the EKS nodes"
-    },
-    "EKSNodesSecurityGroups": {
-      "Type": "List<AWS::EC2::SecurityGroup::Id>",
-      "Description": "Select the security groups for the EKS nodes"
+      "Description": "Select 2 PRIVATE subnets for the EKS nodes"
     },
     "BastionHostImageId": {
-      "Type": "AWS::EC2::Image::Id",
-      "Description": "Enter the AMI Id (prefably Amazon Linux 2) for the bastion host"
+      "Type": "String",
+      "Description": "Enter the Amazon Linux 2 AMI ID for the bastion host"
     },
     "BastionHostKeyPair": {
       "Type": "AWS::EC2::KeyPair::KeyName",
@@ -31,10 +31,6 @@
     "BastionHostSubnet": {
       "Type": "AWS::EC2::Subnet::Id",
       "Description": "Select a PUBLIC subnet for the EKS bastion host"
-    },
-    "BastionHostSecurityGroup": {
-      "Type": "AWS::EC2::SecurityGroup::Id",
-      "Description": "Select the security group for the EKS bastion host"
     }
   },
   "Resources": {
@@ -102,6 +98,35 @@
         ]
       }
     },
+    "NodeAndBastionHostSecurityGroup": {
+      "Type": "AWS::EC2::SecurityGroup",
+      "Properties": {
+        "GroupDescription": "Allow SSH and Ping",
+        "VpcId": { "Ref": "VPC" },
+        "SecurityGroupIngress": [
+          {
+            "IpProtocol": "tcp",
+            "FromPort": 22,
+            "ToPort": 22,
+            "CidrIp": "0.0.0.0/0"
+          },
+          {
+            "IpProtocol": "icmp",
+            "FromPort": "-1",
+            "ToPort": "-1",
+            "CidrIp": "0.0.0.0/0"
+          }
+        ],
+        "SecurityGroupEgress": [
+          {
+            "IpProtocol": "tcp",
+            "FromPort": 0,
+            "ToPort": 65535,
+            "CidrIp": "0.0.0.0/0"
+          }
+        ]
+      }
+    },
     "EKSCluster": {
       "Type": "AWS::EKS::Cluster",
       "Properties": {
@@ -109,7 +134,7 @@
         "Version": "1.21",
         "RoleArn": { "Fn::GetAtt": "EKSClusterServiceRole.Arn" },
         "ResourcesVpcConfig": {
-          "SecurityGroupIds": { "Ref": "EKSNodesSecurityGroups" },
+          "SecurityGroupIds": [{ "Ref": "NodeAndBastionHostSecurityGroup" }],
           "SubnetIds": { "Ref": "EKSNodesSubnets" },
           "EndpointPublicAccess": false,
           "EndpointPrivateAccess": true,
@@ -153,25 +178,37 @@
         "Subnets": { "Ref": "EKSNodesSubnets" }
       }
     },
-    "EKSBastionHost" : {
-      "Type" : "AWS::EC2::Instance",
-      "Properties" : {
-        "ImageId" : { "Ref": "BastionHostImageId" },
+    "EKSBastionHost": {
+      "Type": "AWS::EC2::Instance",
+      "Properties": {
+        "ImageId": { "Ref": "BastionHostImageId" },
         "InstanceType": "t3.micro",
-        "KeyName" : { "Ref" : "BastionHostKeyPair" },
-        "NetworkInterfaces": [ {
-          "AssociatePublicIpAddress": "true",
-          "DeviceIndex": "0",
-          "GroupSet": [{ "Fn::GetAtt": "EKSCluster.ClusterSecurityGroupId" }, { "Ref": "BastionHostSecurityGroup" }],
-          "SubnetId": { "Ref" : "BastionHostSubnet" }
-        } ],
+        "KeyName": { "Ref": "BastionHostKeyPair" },
+        "NetworkInterfaces": [
+          {
+            "AssociatePublicIpAddress": "true",
+            "DeviceIndex": "0",
+            "GroupSet": [
+              { "Fn::GetAtt": "EKSCluster.ClusterSecurityGroupId" },
+              { "Ref": "NodeAndBastionHostSecurityGroup" }
+            ],
+            "SubnetId": { "Ref": "BastionHostSubnet" }
+          }
+        ],
         "Tags": [
           {
             "Key": "Name",
-            "Value": { "Fn::Join": ["-", [{ "Ref": "Project" }, "EKSBastionHost"]] }
+            "Value": {
+              "Fn::Join": ["-", [{ "Ref": "Project" }, "EKSBastionHost"]]
+            }
           },
           { "Key": "Environment", "Value": { "Ref": "Environment" } }
-        ]
+        ],
+        "UserData": {
+          "Fn::Base64": {
+            "Fn::Join": ["", ["#!/bin/bash", "\n", "yum update -y", "\n"]]
+          }
+        }
       }
     }
   },
