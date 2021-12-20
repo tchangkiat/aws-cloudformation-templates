@@ -19,11 +19,12 @@ Policy Definition:
                 "iam:*",
                 "cloudwatch:*",
                 "s3:*",
-                "cloudformation:*",
+                "ecr:*",
                 "ec2:*",
+                "cloudformation:*",
+                "elasticloadbalancing:*",
                 "eks:*",
                 "ec2-instance-connect:*",
-                "ecr:*",
                 "codebuild:*"
             ],
             "Resource": "*"
