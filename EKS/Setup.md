@@ -1,36 +1,10 @@
 # Setup Guide
 
-## IAM User
-
-Create an IAM user with the necessary permissions (refer to policy below) which has at least the CLI access (access key ID and secret access key required).
-
-Policy Definition:
-```json
-{
-    "Version": "2012-10-17",
-    "Statement": [
-        {
-            "Effect": "Allow",
-            "Action": [
-                "iam:*",
-                "cloudwatch:*",
-                "s3:*",
-                "cloudformation:*",
-                "ec2:*",
-                "eks:*",
-                "ec2-instance-connect:*"
-            ],
-            "Resource": "*"
-        }
-    ]
-}
-```
-
 ## CloudFormation
 
 Use the IAM user created above to:
 1. Create a stack with VPC.json in Network folder
-2. Create a stack with EKS.json, with parameters referencing subnets and security groups created by VPC.json
+2. Create a stack with EKS.json, with parameters referencing subnets created by VPC.json. This template takes about 20 minutes or so to complete
 
 ## Bastion Host
 
