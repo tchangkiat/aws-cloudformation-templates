@@ -23,7 +23,8 @@ Policy Definition:
                 "ec2:*",
                 "eks:*",
                 "ec2-instance-connect:*",
-                "ecr:*"
+                "ecr:*",
+                "codebuild:*"
             ],
             "Resource": "*"
         }
