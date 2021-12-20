@@ -169,7 +169,7 @@
         "ScalingConfig": {
           "MinSize": 0,
           "DesiredSize": 2,
-          "MaxSize": 2
+          "MaxSize": 3
         },
         "InstanceTypes": ["t3.micro"],
         "Labels": {
@@ -210,7 +210,8 @@
               "\n",
               [
                 "#!/bin/bash",
-                "yum update -y",
+                "sudo yum update -y",
+                "sudo yum install git -y",
                 "curl \"https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip\" -o \"awscliv2.zip\"",
                 "unzip awscliv2.zip",
                 "sudo ./aws/install",
@@ -218,7 +219,27 @@
                 "sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl",
                 "curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3",
                 "chmod 700 get_helm.sh",
-                "./get_helm.sh"
+                "./get_helm.sh",
+                "curl --silent --location \"https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz\" | tar xz -C /tmp",
+                "sudo mv /tmp/eksctl /usr/local/bin",
+                {
+                  "Fn::Join": [
+                    "",
+                    ["export AWS_ACCOUNT_ID=", { "Ref": "AWS::AccountId" }]
+                  ]
+                },
+                {
+                  "Fn::Join": [
+                    "",
+                    ["export AWS_REGION=", { "Ref": "AWS::Region" }]
+                  ]
+                },
+                {
+                  "Fn::Join": [
+                    "",
+                    ["export AWS_EKS_CLUSTER=", { "Ref": "EKSCluster" }]
+                  ]
+                }
               ]
             ]
           }
