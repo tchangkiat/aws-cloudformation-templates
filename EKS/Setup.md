@@ -11,11 +11,13 @@ Use the IAM user created above to:
 
 ### 1. Set up environment variables
 
+1. Execute the following commands and re-connect to the bastion host:
+
 ```bash
-#Replace the following <> with the respective values
-export AWS_ACCOUNT_ID=<AWS Account Id>
-export AWS_REGION=<AWS Region>
-export AWS_EKS_CLUSTER=<AWS EKS Cluster Name>
+# Replace <> with the respective values
+echo 'export AWS_ACCOUNT_ID=409989946510' >> ~/.bashrc
+echo 'export AWS_REGION=ap-southeast-1' >> ~/.bashrc
+echo 'export AWS_EKS_CLUSTER=MyProject2' >> ~/.bashrc
 ```
 
 ### 2. Configure AWS CLI
