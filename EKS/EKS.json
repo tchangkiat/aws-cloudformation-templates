@@ -221,25 +221,7 @@
                 "chmod 700 get_helm.sh",
                 "./get_helm.sh",
                 "curl --silent --location \"https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz\" | tar xz -C /tmp",
-                "sudo mv /tmp/eksctl /usr/local/bin",
-                {
-                  "Fn::Join": [
-                    "",
-                    ["export AWS_ACCOUNT_ID=", { "Ref": "AWS::AccountId" }]
-                  ]
-                },
-                {
-                  "Fn::Join": [
-                    "",
-                    ["export AWS_REGION=", { "Ref": "AWS::Region" }]
-                  ]
-                },
-                {
-                  "Fn::Join": [
-                    "",
-                    ["export AWS_EKS_CLUSTER=", { "Ref": "EKSCluster" }]
-                  ]
-                }
+                "sudo mv /tmp/eksctl /usr/local/bin"
               ]
             ]
           }

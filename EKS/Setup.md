@@ -3,35 +3,54 @@
 ## CloudFormation
 
 Use the IAM user created above to:
+
 1. Create a stack with VPC.json in Network folder
 2. Create a stack with EKS.json, with parameters referencing subnets created by VPC.json. This template takes about 20 minutes or so to complete
 
 ## Bastion Host
 
-### 1. Configure AWS CLI
-Execute the following commands and enter the access key ID and secret access key, along with other information like default region and output format:
+### 1. Set up environment variables
+
+```bash
+#Replace the following <> with the respective values
+export AWS_ACCOUNT_ID=<AWS Account Id>
+export AWS_REGION=<AWS Region>
+export AWS_EKS_CLUSTER=<AWS EKS Cluster Name>
+```
+
+### 2. Configure AWS CLI
+
+1. Execute the following commands and enter the access key ID and secret access key, along with other information like default region and output format:
+
 ```bash
 aws configure
 ```
 
-Execute the following command and replace the respective values in arrow brackets:
+2. Execute the following command and replace the respective values in arrow brackets:
+
 ```bash
 aws eks --region $AWS_REGION update-kubeconfig --name $AWS_EKS_CLUSTER
 ```
 
-### 2. Test
-Execute this command:
+### 3. Test the connectivity to the EKS cluster
+
+1. Execute this command:
+
 ```bash
 kubectl get svc
 ```
-Expected Output (similar to the one provided):
+
+2. Expected Output (similar to the one provided below):
+
 ```
 NAME             TYPE        CLUSTER-IP   EXTERNAL-IP   PORT(S)   AGE
 svc/kubernetes   ClusterIP   10.100.0.1   <none>        443/TCP   1m
 ```
 
-### 3. Set up AWS App Mesh (optional)
-Execute the following commands:
+### 4. Set up AWS App Mesh (optional)
+
+1. Execute the following commands:
+
 ```bash
 kubectl apply -k "https://github.com/aws/eks-charts/stable/appmesh-controller/crds?ref=master"
 
@@ -55,9 +74,32 @@ kubectl apply -f "https://raw.githubusercontent.com/tchangkiat/sample-express-ap
 
 kubectl apply -f "https://raw.githubusercontent.com/tchangkiat/sample-express-api/master/k8s/eks/appmesh-virtualservice.yaml"
 
-curl https://raw.githubusercontent.com/tchangkiat/sample-express-api/master/k8s/eks/proxy-auth-policy.json -o proxy-auth-policy.json
+curl https://raw.githubusercontent.com/tchangkiat/sample-express-api/master/k8s/eks/proxy-auth-cf.json -o proxy-auth-cf.json
 
-aws iam create-policy --policy-name AppMeshProxyAuth --policy-document file://proxy-auth-policy.json
+aws cloudformation create-stack --stack-name AppMeshProxyAuthPolicy --template-body file://proxy-auth-cf.json --parameters ParameterKey=MeshName,ParameterValue=default-mesh --capabilities CAPABILITY_NAMED_IAM
 
-eksctl create iamserviceaccount --cluster $AWS_EKS_CLUSTER --namespace default --name sample-express-api-service --attach-policy-arn arn:aws:iam::$AWS_ACCOUNT_ID:policy/AppMeshProxyAuth --override-existing-serviceaccounts --approve
+eksctl create iamserviceaccount --cluster $AWS_EKS_CLUSTER --namespace default --name sample-express-api-service --attach-policy-arn arn:aws:iam::$AWS_ACCOUNT_ID:policy/AppMeshProxyAuth-default-mesh --override-existing-serviceaccounts --approve
+
+# Scale up an additional node to fit in 2 sets of sample-express-api and 1 set of AWS App Mesh Pods
+eksctl scale nodegroup --cluster=$AWS_EKS_CLUSTER --nodes=3 --name `eksctl get nodegroup --cluster $AWS_EKS_CLUSTER | grep 'EKSNodeGroup' | awk '{print $2}'`
 ```
+
+2. Your cluster should now inject an Envoy container in your deployment automatically.
+
+### 4. Tear Down
+
+1. Execute the following commands in the Bastion Host:
+
+```bash
+kubectl delete -f "https://raw.githubusercontent.com/tchangkiat/sample-express-api/master/k8s/deployment.yaml"
+
+kubectl delete -f "https://raw.githubusercontent.com/tchangkiat/sample-express-api/master/k8s/eks/appmesh-virtualservice.yaml"
+
+kubectl delete -f "https://raw.githubusercontent.com/tchangkiat/sample-express-api/master/k8s/eks/appmesh-virtualrouter.yaml"
+
+kubectl delete -f "https://raw.githubusercontent.com/tchangkiat/sample-express-api/master/k8s/eks/appmesh-virtualnode.yaml"
+
+kubectl delete -f "https://raw.githubusercontent.com/tchangkiat/sample-express-api/master/k8s/eks/appmesh.yaml"
+```
+
+2. Delete all related CloudFormation templates.
