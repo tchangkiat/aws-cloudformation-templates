@@ -102,6 +102,8 @@ curl https://raw.githubusercontent.com/tchangkiat/sample-express-api/master/k8s/
 helm upgrade -i appmesh-controller eks/appmesh-controller --namespace appmesh-system --set region=$AWS_REGION --set serviceAccount.create=false --set serviceAccount.name=appmesh-controller --set tracing.enabled=true --set tracing.provider=x-ray
 
 kubectl rollout restart deployment sample-express-api
+
+eksctl create iamserviceaccount --name sample-express-api-service-account --namespace default --cluster $AWS_EKS_CLUSTER --attach-policy-arn arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess --override-existing-serviceaccounts --approve
 ```
 
 2. Modify your source code to include and use AWS X-Ray SDK.
