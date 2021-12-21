@@ -11,9 +11,9 @@
 
 ```bash
 # Replace <> with the respective values
-echo 'export AWS_ACCOUNT_ID=409989946510' >> ~/.bashrc
-echo 'export AWS_REGION=ap-southeast-1' >> ~/.bashrc
-echo 'export AWS_EKS_CLUSTER=MyProject2' >> ~/.bashrc
+echo 'export AWS_ACCOUNT_ID=<AWS Account Id>' >> ~/.bashrc
+echo 'export AWS_REGION=<AWS Region>' >> ~/.bashrc
+echo 'export AWS_EKS_CLUSTER=<EKS Cluster Name>' >> ~/.bashrc
 ```
 
 ## 2. Configure AWS CLI
