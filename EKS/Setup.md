@@ -76,7 +76,7 @@ curl https://raw.githubusercontent.com/tchangkiat/sample-express-api/master/k8s/
 
 aws cloudformation create-stack --stack-name AppMeshProxyAuthPolicy --template-body file://proxy-auth-cf.json --parameters ParameterKey=MeshName,ParameterValue=default-mesh --capabilities CAPABILITY_NAMED_IAM
 
-eksctl create iamserviceaccount --cluster $AWS_EKS_CLUSTER --namespace default --name sample-express-api-service --attach-policy-arn arn:aws:iam::$AWS_ACCOUNT_ID:policy/AppMeshProxyAuth-default-mesh --override-existing-serviceaccounts --approve
+eksctl create iamserviceaccount --cluster $AWS_EKS_CLUSTER --namespace default --name sample-express-api-service-account --attach-policy-arn arn:aws:iam::$AWS_ACCOUNT_ID:policy/AppMeshProxyAuth-default-mesh --attach-policy-arn arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess --override-existing-serviceaccounts --approve
 
 # Scale up an additional node to fit in 2 sets of sample-express-api and 1 set of AWS App Mesh Pods
 eksctl scale nodegroup --cluster=$AWS_EKS_CLUSTER --nodes=3 --name `eksctl get nodegroup --cluster $AWS_EKS_CLUSTER | grep 'EKSNodeGroup' | awk '{print $2}'`
@@ -94,11 +94,11 @@ curl https://raw.githubusercontent.com/tchangkiat/sample-express-api/master/k8s/
 
 ## 5. Set up AWS X-Ray Integration (optional)
 
+Note: You should set up App Mesh first before setting up AWS X-Ray Integration.
+
 1. Execute the following commands:
 
 ```bash
-eksctl create iamserviceaccount --name sample-express-api-service-account --namespace default --cluster $AWS_EKS_CLUSTER --attach-policy-arn arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess --approve
-
 helm upgrade -i appmesh-controller eks/appmesh-controller --namespace appmesh-system --set region=$AWS_REGION --set serviceAccount.create=false --set serviceAccount.name=appmesh-controller --set tracing.enabled=true --set tracing.provider=x-ray
 
 kubectl rollout restart deployment sample-express-api
