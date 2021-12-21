@@ -2,8 +2,6 @@
 
 ## CloudFormation
 
-Use the IAM user created above to:
-
 1. Create a stack with VPC.json in Network folder.
 2. Create a stack with EKS.json, with parameters referencing subnets created by VPC.json. This template takes about 20 minutes or so to complete.
 
@@ -96,7 +94,19 @@ curl https://raw.githubusercontent.com/tchangkiat/sample-express-api/master/k8s/
 
 4. The Envoy containers should be injected in your application Pods automatically.
 
-### 5. Tear Down
+### 5. Set up AWS X-Ray Integration (optional)
+
+1. Execute the following commands:
+
+```bash
+helm upgrade -i appmesh-controller eks/appmesh-controller --namespace appmesh-system --set region=$AWS_REGION --set serviceAccount.create=false --set serviceAccount.name=appmesh-controller --set tracing.enabled=true --set tracing.provider=x-ray
+
+kubectl rollout restart deployment sample-express-api
+```
+
+2. Modify your source code to include and use AWS X-Ray SDK.
+
+### 6. Tear Down
 
 1. Execute the following commands in the Bastion Host if AWS App Mesh was set up:
 
