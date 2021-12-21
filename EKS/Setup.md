@@ -1,13 +1,11 @@
-# Setup Guide
-
-## CloudFormation
+# Create CloudFormation Stacks
 
 1. Create a stack with VPC.json in Network folder.
 2. Create a stack with EKS.json, with parameters referencing subnets created by VPC.json. This template takes about 20 minutes or so to complete.
 
-## Bastion Host
+# Configure Bastion Host
 
-### 1. Set up environment variables
+## 1. Set up environment variables
 
 1. Execute the following commands and re-connect to the bastion host:
 
@@ -18,7 +16,7 @@ echo 'export AWS_REGION=ap-southeast-1' >> ~/.bashrc
 echo 'export AWS_EKS_CLUSTER=MyProject2' >> ~/.bashrc
 ```
 
-### 2. Configure AWS CLI
+## 2. Configure AWS CLI
 
 1. Execute the following commands and enter the access key ID and secret access key, along with other information like default region and output format:
 
@@ -32,7 +30,7 @@ aws configure
 aws eks --region $AWS_REGION update-kubeconfig --name $AWS_EKS_CLUSTER
 ```
 
-### 3. Test the connectivity to the EKS cluster
+## 3. Test the connectivity to the EKS cluster
 
 1. Execute this command:
 
@@ -47,7 +45,7 @@ NAME             TYPE        CLUSTER-IP   EXTERNAL-IP   PORT(S)   AGE
 svc/kubernetes   ClusterIP   10.100.0.1   <none>        443/TCP   1m
 ```
 
-### 4. Set up AWS App Mesh (optional)
+## 4. Set up AWS App Mesh (optional)
 
 1. Execute the following commands:
 
@@ -94,21 +92,21 @@ curl https://raw.githubusercontent.com/tchangkiat/sample-express-api/master/k8s/
 
 4. The Envoy containers should be injected in your application Pods automatically.
 
-### 5. Set up AWS X-Ray Integration (optional)
+## 5. Set up AWS X-Ray Integration (optional)
 
 1. Execute the following commands:
 
 ```bash
+eksctl create iamserviceaccount --name sample-express-api-service-account --namespace default --cluster $AWS_EKS_CLUSTER --attach-policy-arn arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess --approve
+
 helm upgrade -i appmesh-controller eks/appmesh-controller --namespace appmesh-system --set region=$AWS_REGION --set serviceAccount.create=false --set serviceAccount.name=appmesh-controller --set tracing.enabled=true --set tracing.provider=x-ray
 
 kubectl rollout restart deployment sample-express-api
-
-eksctl create iamserviceaccount --name sample-express-api-service-account --namespace default --cluster $AWS_EKS_CLUSTER --attach-policy-arn arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess --override-existing-serviceaccounts --approve
 ```
 
 2. Modify your source code to include and use AWS X-Ray SDK.
 
-### 6. Tear Down
+## 6. Tear Down
 
 1. Execute the following commands in the Bastion Host if AWS App Mesh was set up:
 
