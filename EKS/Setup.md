@@ -4,8 +4,8 @@
 
 Use the IAM user created above to:
 
-1. Create a stack with VPC.json in Network folder
-2. Create a stack with EKS.json, with parameters referencing subnets created by VPC.json. This template takes about 20 minutes or so to complete
+1. Create a stack with VPC.json in Network folder.
+2. Create a stack with EKS.json, with parameters referencing subnets created by VPC.json. This template takes about 20 minutes or so to complete.
 
 ## Bastion Host
 
@@ -84,11 +84,19 @@ eksctl create iamserviceaccount --cluster $AWS_EKS_CLUSTER --namespace default -
 eksctl scale nodegroup --cluster=$AWS_EKS_CLUSTER --nodes=3 --name `eksctl get nodegroup --cluster $AWS_EKS_CLUSTER | grep 'EKSNodeGroup' | awk '{print $2}'`
 ```
 
-2. Your cluster should now inject an Envoy container in your deployment automatically.
+2. Deploy sample-express-api.
 
-### 4. Tear Down
+```bash
+curl https://raw.githubusercontent.com/tchangkiat/sample-express-api/master/k8s/deployment.yaml -o deployment.yaml
+```
 
-1. Execute the following commands in the Bastion Host:
+3. Remember to change [URL] in deployment.yaml to the container image URL and execute ```kubectl apply -f deployment.yaml```
+
+4. The Envoy containers should be injected in your application Pods automatically.
+
+### 5. Tear Down
+
+1. Execute the following commands in the Bastion Host if AWS App Mesh was set up:
 
 ```bash
 kubectl delete -f "https://raw.githubusercontent.com/tchangkiat/sample-express-api/master/k8s/deployment.yaml"
