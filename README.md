@@ -1,8 +1,9 @@
 # AWS CloudFormation Templates
+This repository contains CloudFormation templates and guides to simplify the processes for provisioning resources (e.g. creating an EKS cluster which can be managed by a bastion host).
 
 ## Disclaimer
 
-Please review the templates and take note of the resources created. I am not responsible for any cost incurred by the resources. You may modify the templates to remove the resources which you do not require.
+Please review the templates and be aware of the resources created. I am not responsible for any cost incurred by the resources. You may modify the templates to remove the resources which you do not require.
 
 ## IAM User
 
