@@ -132,4 +132,4 @@ kubectl delete -f "https://raw.githubusercontent.com/tchangkiat/sample-express-a
 kubectl delete -f "https://raw.githubusercontent.com/tchangkiat/sample-express-api/master/k8s/eks/appmesh.yaml"
 ```
 
-3. Delete all related CloudFormation templates.
+3. Delete all related CloudFormation stacks.
