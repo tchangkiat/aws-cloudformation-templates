@@ -14,19 +14,19 @@
 echo 'export AWS_ACCOUNT_ID=<AWS Account Id>' >> ~/.bashrc
 echo 'export AWS_REGION=<AWS Region>' >> ~/.bashrc
 echo 'export AWS_EKS_CLUSTER=<EKS Cluster Name>' >> ~/.bashrc
+echo 'export CONTAINER_IMAGE_URL=<Container Image URL>' >> ~/.bashrc
 ```
 
-## 2. Configure AWS CLI
+## 2. Configure AWS CLI and update kubeconfig
 
-1. Execute the following commands and enter the access key ID and secret access key, along with other information like default region and output format:
-
-```bash
-aws configure
-```
-
-2. Execute the following command and replace the respective values in arrow brackets:
+1. Execute the following commands and replace <> with the access key ID and secret access key respectively:
 
 ```bash
+aws configure set aws_access_key_id <Your Access Key>
+aws configure set aws_secret_access_key <Your Access Key Secret>
+aws configure set region $AWS_REGION
+aws configure set output json
+
 aws eks --region $AWS_REGION update-kubeconfig --name $AWS_EKS_CLUSTER
 ```
 
@@ -46,6 +46,8 @@ svc/kubernetes   ClusterIP   10.100.0.1   <none>        443/TCP   1m
 ```
 
 ## 4. Set up AWS App Mesh (optional)
+
+Note: These instructions are using github.com/tchangkiat/sample-express-api as the application.
 
 1. Execute the following commands:
 
@@ -82,17 +84,21 @@ eksctl create iamserviceaccount --cluster $AWS_EKS_CLUSTER --namespace default -
 eksctl scale nodegroup --cluster=$AWS_EKS_CLUSTER --nodes=3 --name `eksctl get nodegroup --cluster $AWS_EKS_CLUSTER | grep 'EKSNodeGroup' | awk '{print $2}'`
 ```
 
-2. Deploy sample-express-api.
+## 5. Deploy a sample application and test the injection of Envoy containers (optional)
+
+1. Execute the following commands:
 
 ```bash
 curl https://raw.githubusercontent.com/tchangkiat/sample-express-api/master/k8s/deployment.yaml -o deployment.yaml
+
+sed -i "s|\[URL\]|${CONTAINER_IMAGE_URL}|g" deployment.yaml
+
+kubectl apply -f deployment.yaml
 ```
 
-3. Remember to change [URL] in deployment.yaml to the container image URL and execute ```kubectl apply -f deployment.yaml```
+2. The Envoy containers should be injected in your application Pods automatically.
 
-4. The Envoy containers should be injected in your application Pods automatically.
-
-## 5. Set up AWS X-Ray Integration (optional)
+## 6. Set up AWS X-Ray Integration (optional)
 
 Note: You should set up App Mesh first before setting up AWS X-Ray Integration.
 
@@ -104,15 +110,21 @@ helm upgrade -i appmesh-controller eks/appmesh-controller --namespace appmesh-sy
 kubectl rollout restart deployment sample-express-api
 ```
 
-2. Modify your source code to include and use AWS X-Ray SDK.
+2. The X-Ray Daemon containers should be injected in your application Pods automatically.
 
-## 6. Tear Down
+2. Modify your source code to include and use the AWS X-Ray SDK.
 
-1. Execute the following commands in the Bastion Host if AWS App Mesh was set up:
+## 7. Tear Down
+
+1. Execute the following command in the Bastion Host if the sample application is set up:
 
 ```bash
 kubectl delete -f "https://raw.githubusercontent.com/tchangkiat/sample-express-api/master/k8s/deployment.yaml"
+```
 
+2. Execute the following commands in the Bastion Host if AWS App Mesh was set up:
+
+```bash
 kubectl delete -f "https://raw.githubusercontent.com/tchangkiat/sample-express-api/master/k8s/eks/appmesh-virtualservice.yaml"
 
 kubectl delete -f "https://raw.githubusercontent.com/tchangkiat/sample-express-api/master/k8s/eks/appmesh-virtualrouter.yaml"
@@ -122,4 +134,4 @@ kubectl delete -f "https://raw.githubusercontent.com/tchangkiat/sample-express-a
 kubectl delete -f "https://raw.githubusercontent.com/tchangkiat/sample-express-api/master/k8s/eks/appmesh.yaml"
 ```
 
-2. Delete all related CloudFormation templates.
+3. Delete all related CloudFormation templates.

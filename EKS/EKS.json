@@ -98,7 +98,7 @@
         ]
       }
     },
-    "NodeAndBastionHostSecurityGroup": {
+    "BastionHostSecurityGroup": {
       "Type": "AWS::EC2::SecurityGroup",
       "Properties": {
         "GroupDescription": "Allow SSH and Ping",
@@ -124,6 +124,13 @@
             "ToPort": 65535,
             "CidrIp": "0.0.0.0/0"
           }
+        ],
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": { "Fn::Join": ["-", [{ "Ref": "Project" }, "EKSBastionHostSG"]] }
+          },
+          { "Key": "Environment", "Value": { "Ref": "Environment" } }
         ]
       }
     },
@@ -134,7 +141,6 @@
         "Version": "1.21",
         "RoleArn": { "Fn::GetAtt": "EKSClusterServiceRole.Arn" },
         "ResourcesVpcConfig": {
-          "SecurityGroupIds": [{ "Ref": "NodeAndBastionHostSecurityGroup" }],
           "SubnetIds": { "Ref": "EKSNodesSubnets" },
           "EndpointPublicAccess": false,
           "EndpointPrivateAccess": true,
@@ -190,7 +196,7 @@
             "DeviceIndex": "0",
             "GroupSet": [
               { "Fn::GetAtt": "EKSCluster.ClusterSecurityGroupId" },
-              { "Ref": "NodeAndBastionHostSecurityGroup" }
+              { "Ref": "BastionHostSecurityGroup" }
             ],
             "SubnetId": { "Ref": "BastionHostSubnet" }
           }
