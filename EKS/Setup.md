@@ -116,7 +116,7 @@ kubectl rollout restart deployment sample-express-api
 
 ## 7. Tear Down
 
-1. Execute the following command in the Bastion Host if the sample application is set up:
+1. Execute the following command in the Bastion Host if the sample application was set up:
 
 ```bash
 kubectl delete -f "https://raw.githubusercontent.com/tchangkiat/sample-express-api/master/k8s/deployment.yaml"
