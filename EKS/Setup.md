@@ -47,7 +47,7 @@ svc/kubernetes   ClusterIP   10.100.0.1   <none>        443/TCP   1m
 
 ## 4. Set up AWS App Mesh (optional)
 
-Note: These instructions are using github.com/tchangkiat/sample-express-api as the application.
+Note: These instructions are using github.com/tchangkiat/sample-express-api as the application. You may download the configuration (e.g. yaml, json) files and modify them to cater to your application.
 
 1. Execute the following commands:
 
@@ -84,9 +84,7 @@ eksctl create iamserviceaccount --cluster $AWS_EKS_CLUSTER --namespace default -
 eksctl scale nodegroup --cluster=$AWS_EKS_CLUSTER --nodes=3 --name `eksctl get nodegroup --cluster $AWS_EKS_CLUSTER | grep 'EKSNodeGroup' | awk '{print $2}'`
 ```
 
-## 5. Deploy a sample application and test the injection of Envoy containers (optional)
-
-1. Execute the following commands:
+2. Deploy a sample application and verify if the Envoy containers are injected:
 
 ```bash
 curl https://raw.githubusercontent.com/tchangkiat/sample-express-api/master/k8s/deployment.yaml -o deployment.yaml
@@ -96,9 +94,9 @@ sed -i "s|\[URL\]|${CONTAINER_IMAGE_URL}|g" deployment.yaml
 kubectl apply -f deployment.yaml
 ```
 
-2. The Envoy containers should be injected in your application Pods automatically.
+3. The Envoy containers should be injected in your application Pods automatically.
 
-## 6. Set up AWS X-Ray Integration (optional)
+## 5. Set up AWS X-Ray Integration (optional)
 
 Note: You should set up App Mesh first before setting up AWS X-Ray Integration.
 
@@ -112,9 +110,9 @@ kubectl rollout restart deployment sample-express-api
 
 2. The X-Ray Daemon containers should be injected in your application Pods automatically.
 
-2. Modify your source code to include and use the AWS X-Ray SDK.
+2. Modify your source code to include and use the AWS X-Ray SDK (this was already done for the sample application).
 
-## 7. Tear Down
+## 6. Tear Down
 
 1. Execute the following command in the Bastion Host if the sample application was set up:
 
