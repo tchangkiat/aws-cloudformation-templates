@@ -1,11 +1,35 @@
 {
   "AWSTemplateFormatVersion": "2010-09-09",
   "Description": "Creates an EKS cluster with a managed node group",
+  "Metadata": {
+    "AWS::CloudFormation::Interface": {
+      "ParameterGroups": [
+        {
+          "Label": { "default": "EKS Configurations" },
+          "Parameters": ["Project", "Environment", "VPC", "EKSNodesSubnets"]
+        },
+        {
+          "Label": { "default": "Bastion Host Configurations" },
+          "Parameters": [
+            "BastionHostImage",
+            "BastionHostKeyPair",
+            "BastionHostSubnet"
+          ]
+        }
+      ],
+      "ParameterLabels": {
+        "EKSNodesSubnets": { "default": "Subnets of EKS Nodes" },
+        "BastionHostImage": { "default": "Machine Image" },
+        "BastionHostKeyPair": { "default": "Key Pair" },
+        "BastionHostSubnet": { "default": "Public Subnet" }
+      }
+    }
+  },
   "Parameters": {
     "Project": {
       "Type": "String",
       "Default": "MyProject",
-      "Description": "Enter a project name"
+      "Description": "Enter a project name (will be used as the EKS Cluster name too)"
     },
     "Environment": {
       "Type": "String",
@@ -14,7 +38,7 @@
     },
     "VPC": {
       "Type": "AWS::EC2::VPC::Id",
-      "Description": "Select a VPC for the cluster"
+      "Description": "Select the VPC, which is hosting the EKS cluster and bastion host"
     },
     "EKSNodesSubnets": {
       "Type": "List<AWS::EC2::Subnet::Id>",
@@ -129,7 +153,9 @@
         "Tags": [
           {
             "Key": "Name",
-            "Value": { "Fn::Join": ["-", [{ "Ref": "Project" }, "EKSBastionHostSG"]] }
+            "Value": {
+              "Fn::Join": ["-", [{ "Ref": "Project" }, "EKSBastionHostSG"]]
+            }
           },
           { "Key": "Environment", "Value": { "Ref": "Environment" } }
         ]
