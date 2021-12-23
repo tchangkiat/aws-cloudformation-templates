@@ -20,9 +20,10 @@
       "Type": "List<AWS::EC2::Subnet::Id>",
       "Description": "Select 2 PRIVATE subnets for the EKS nodes"
     },
-    "BastionHostImageId": {
-      "Type": "String",
-      "Description": "Enter the Amazon Linux 2 AMI ID for the bastion host"
+    "BastionHostImage": {
+      "Type": "AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>",
+      "Default": "/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2",
+      "Description": "Recommended to stick with the default value, which is the latest (or second latest) Amazon Linux 2 AMI"
     },
     "BastionHostKeyPair": {
       "Type": "AWS::EC2::KeyPair::KeyName",
@@ -187,7 +188,7 @@
     "EKSBastionHost": {
       "Type": "AWS::EC2::Instance",
       "Properties": {
-        "ImageId": { "Ref": "BastionHostImageId" },
+        "ImageId": { "Ref": "BastionHostImage" },
         "InstanceType": "t3.micro",
         "KeyName": { "Ref": "BastionHostKeyPair" },
         "NetworkInterfaces": [

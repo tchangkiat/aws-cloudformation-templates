@@ -28,7 +28,8 @@ Policy Definition:
                 "eks:*",
                 "ec2-instance-connect:*",
                 "appmesh:*",
-                "codebuild:*"
+                "codebuild:*",
+                "ssm:GetParameters"
             ],
             "Resource": "*"
         }
