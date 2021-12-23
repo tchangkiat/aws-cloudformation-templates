@@ -52,13 +52,13 @@ Note: These instructions are using github.com/tchangkiat/sample-express-api as t
 1. Execute the following commands:
 
 ```bash
-kubectl apply -k "https://github.com/aws/eks-charts/stable/appmesh-controller/crds?ref=master"
-
-helm repo add eks https://aws.github.io/eks-charts
+eksctl utils associate-iam-oidc-provider --region=$AWS_REGION --cluster=$AWS_EKS_CLUSTER --approve
 
 kubectl create namespace appmesh-system
 
-eksctl utils associate-iam-oidc-provider --region=$AWS_REGION --cluster=$AWS_EKS_CLUSTER --approve
+kubectl apply -k "https://github.com/aws/eks-charts/stable/appmesh-controller/crds?ref=master"
+
+helm repo add eks https://aws.github.io/eks-charts
 
 eksctl create iamserviceaccount --namespace appmesh-system --name appmesh-controller --attach-policy-arn arn:aws:iam::aws:policy/AWSCloudMapFullAccess,arn:aws:iam::aws:policy/AWSAppMeshFullAccess,arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess --cluster $AWS_EKS_CLUSTER --approve
 
@@ -130,6 +130,8 @@ kubectl delete -f "https://raw.githubusercontent.com/tchangkiat/sample-express-a
 kubectl delete -f "https://raw.githubusercontent.com/tchangkiat/sample-express-api/master/k8s/eks/appmesh-virtualnode.yaml"
 
 kubectl delete -f "https://raw.githubusercontent.com/tchangkiat/sample-express-api/master/k8s/eks/appmesh.yaml"
+
+helm uninstall appmesh-controller --namespace appmesh-system
 ```
 
 3. Delete all related CloudFormation stacks.
