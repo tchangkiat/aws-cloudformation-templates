@@ -1,6 +1,31 @@
 {
   "AWSTemplateFormatVersion": "2010-09-09",
   "Description": "This template sets up a VPC with 2 public and 2 private subnets",
+  "Metadata": {
+    "AWS::CloudFormation::Interface": {
+      "ParameterGroups": [
+        {
+          "Label": { "default": "General Configurations" },
+          "Parameters": ["Project", "Environment", "VPCCIDR"]
+        },
+        {
+          "Label": { "default": "Public Subnets' Configurations" },
+          "Parameters": ["PublicSubnetCIDR1", "PublicSubnetCIDR2"]
+        },
+        {
+          "Label": { "default": "Private Subnets' Configurations" },
+          "Parameters": ["PrivateSubnetCIDR1", "PrivateSubnetCIDR2"]
+        }
+      ],
+      "ParameterLabels": {
+        "VPCCIDR": { "default": "CIDR block of VPC" },
+        "PublicSubnetCIDR1": { "default": "CIDR block of Public Subnet 1" },
+        "PublicSubnetCIDR2": { "default": "CIDR block of Public Subnet 2" },
+        "PrivateSubnetCIDR1": { "default": "CIDR block of Private Subnet 1" },
+        "PrivateSubnetCIDR2": { "default": "CIDR block of Private Subnet 2" }
+      }
+    }
+  },
   "Parameters": {
     "Project": {
       "Type": "String",

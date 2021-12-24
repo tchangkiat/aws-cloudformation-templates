@@ -1,16 +1,29 @@
 {
   "AWSTemplateFormatVersion": "2010-09-09",
   "Description": "Creates a CodeBuild project for building Docker image from a public GitHub repository and publish to ECR",
+  "Metadata": {
+    "AWS::CloudFormation::Interface": {
+      "ParameterGroups": [
+        {
+          "Label": { "default": "General Configurations" },
+          "Parameters": ["Project", "Environment", "RepositoryURL"]
+        }
+      ],
+      "ParameterLabels": {
+        "RepositoryURL": { "default": "URL of Code Repository" }
+      }
+    }
+  },
   "Parameters": {
-    "Environment": {
-      "Type": "String",
-      "Default": "Development",
-      "Description": "Describe the environment (e.g. development, production)"
-    },
     "Project": {
       "Type": "String",
       "Default": "sample-express-api",
       "Description": "Enter a project name"
+    },
+    "Environment": {
+      "Type": "String",
+      "Default": "Development",
+      "Description": "Describe the environment (e.g. development, production)"
     },
     "RepositoryURL": {
       "Type": "String",
