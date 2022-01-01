@@ -3,11 +3,11 @@
 1. Create a stack with VPC.json in Network folder.
 2. Create a stack with EKS.json, with parameters referencing subnets created by VPC.json. This template takes about 20 minutes or so to complete.
 
-# Configure Bastion Host
+# Set Up Connection to the EKS Cluster
 
-## 1. Set up environment variables
+Connect to the bastion host via SSH or EC2 Instance Connect.
 
-1. Execute the following commands and re-connect to the bastion host:
+1. Execute the following commands to set up the environment variables and re-connect to the bastion host.
 
 ```bash
 # Replace <> with the respective values
@@ -17,9 +17,7 @@ echo 'export AWS_EKS_CLUSTER=<EKS Cluster Name>' >> ~/.bashrc
 echo 'export CONTAINER_IMAGE_URL=<Container Image URL>' >> ~/.bashrc
 ```
 
-## 2. Configure AWS CLI and update kubeconfig
-
-1. Execute the following commands and replace <> with the access key ID and secret access key respectively:
+2. Execute the following commands to configure the AWS CLI and update kubeconfig in the bastion host. Replace <> with the access key ID and secret access key respectively.
 
 ```bash
 aws configure set aws_access_key_id <Your Access Key>
@@ -30,22 +28,16 @@ aws configure set output json
 aws eks --region $AWS_REGION update-kubeconfig --name $AWS_EKS_CLUSTER
 ```
 
-## 3. Test the connectivity to the EKS cluster
+3. Execute ```kubectl get svc``` to test the connectivity to the EKS cluster.
 
-1. Execute this command:
-
-```bash
-kubectl get svc
-```
-
-2. Expected Output (similar to the one provided below):
+4. The output should be similar to the one provided below.
 
 ```
 NAME             TYPE        CLUSTER-IP   EXTERNAL-IP   PORT(S)   AGE
 svc/kubernetes   ClusterIP   10.100.0.1   <none>        443/TCP   1m
 ```
 
-## 4. Set up AWS App Mesh (optional)
+# Set up AWS App Mesh (optional)
 
 Note: These instructions are using github.com/tchangkiat/sample-express-api as the application. You may download the configuration (e.g. yaml, json) files and modify them to cater to your application.
 
@@ -96,7 +88,7 @@ kubectl apply -f deployment.yaml
 
 3. The Envoy containers should be injected in your application Pods automatically.
 
-## 5. Set up AWS X-Ray Integration (optional)
+# Set up AWS X-Ray Integration (optional)
 
 Note: You should set up App Mesh first before setting up AWS X-Ray Integration.
 
@@ -112,7 +104,7 @@ kubectl rollout restart deployment sample-express-api
 
 2. Modify your source code to include and use the AWS X-Ray SDK (this was already done for the sample application).
 
-## 6. Tear Down
+# Tear Down
 
 1. Execute the following command in the Bastion Host if the sample application was set up:
 
