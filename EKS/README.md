@@ -77,7 +77,7 @@ eksctl create iamserviceaccount --cluster $AWS_EKS_CLUSTER --namespace default -
 eksctl scale nodegroup --cluster=$AWS_EKS_CLUSTER --nodes=3 --name `eksctl get nodegroup --cluster $AWS_EKS_CLUSTER | grep 'EKSNodeGroup' | awk '{print $2}'`
 ```
 
-2. Deploy a sample application and verify if the Envoy containers are injected:
+2. Deploy the sample application and verify if the Envoy containers are injected:
 
 ```bash
 curl https://raw.githubusercontent.com/tchangkiat/sample-express-api/master/k8s/deployment.yaml -o deployment.yaml
@@ -105,7 +105,7 @@ kubectl rollout restart deployment sample-express-api
 
 2. Modify your source code to include and use the AWS X-Ray SDK (this was already done for the sample application).
 
-# Tear Down
+# Clean Up
 
 1. Execute the following command in the Bastion Host if the sample application was set up:
 
