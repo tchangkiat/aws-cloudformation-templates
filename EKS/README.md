@@ -1,7 +1,8 @@
-# Create CloudFormation Stacks
+# Create Resources
 
 1. Create a stack with VPC.json in Network folder.
-2. Create a stack with EKS.json, with parameters referencing subnets created by VPC.json. This template takes about 20 minutes or so to complete.
+2. Create an EC2 key pair separately, which will be used to SSH into the bastion host.
+3. Create a stack with EKS.json, with parameters referencing subnets created by VPC.json and the key pair which you have created in step 2. This template takes about 25 minutes or so to complete.
 
 # Set Up Connection to the EKS Cluster
 
