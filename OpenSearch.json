@@ -27,18 +27,18 @@
   "Parameters": {
     "DomainName": {
       "Type": "String",
-      "Default": "oss_cluster",
+      "Default": "oss-cluster",
       "Description": "Enter a domain name"
     },
     "Username": {
       "Type": "String",
-      "Default": "oss_user",
+      "Default": "oss-user",
       "Description": "Enter a username for the master account"
     },
     "Password": {
       "Type": "String",
       "NoEcho": true,
-      "Description": "Enter a password for the master account"
+      "Description": "Enter a password for the master account. The password must contain at least one uppercase letter, one lowercase letter, one number, and one special character."
     }
   },
   "Resources": {
@@ -69,7 +69,7 @@
               "Principal": {
                 "AWS": "*"
               },
-              "Action": "es:ESHttp",
+              "Action": "es:ESHttp*",
               "Resource": {
                 "Fn::Join": [
                   "",
@@ -88,6 +88,16 @@
         "SnapshotOptions": {},
         "CognitoOptions": {
           "Enabled": false
+        },
+        "EncryptionAtRestOptions": {
+          "Enabled": true
+        },
+        "NodeToNodeEncryptionOptions": {
+          "Enabled": true
+        },
+        "DomainEndpointOptions": {
+          "EnforceHTTPS": true,
+          "TLSSecurityPolicy": "Policy-Min-TLS-1-0-2019-07"
         },
         "AdvancedSecurityOptions": {
           "Enabled": true,
