@@ -39,75 +39,75 @@
       "Type": "String",
       "NoEcho": true,
       "Description": "Enter a password for the master account"
-    },
-    "Resources": {
-      "OpenSearchServiceDomain": {
-        "Type": "AWS::OpenSearchService::Domain",
-        "Properties": {
-          "DomainName": {
-            "Ref": "DomainName"
-          },
-          "EngineVersion": "OpenSearch_1.1",
-          "ClusterConfig": {
-            "DedicatedMasterEnabled": false,
-            "InstanceCount": "1",
-            "ZoneAwarenessEnabled": false,
-            "InstanceType": "t3.medium.search"
-          },
-          "EBSOptions": {
-            "EBSEnabled": true,
-            "Iops": "0",
-            "VolumeSize": "20",
-            "VolumeType": "gp2"
-          },
-          "AccessPolicies": {
-            "Version": "2012-10-17",
-            "Statement": [
-              {
-                "Effect": "Allow",
-                "Principal": {
-                  "AWS": "*"
-                },
-                "Action": "es:ESHttp",
-                "Resource": {
-                  "Fn::Join": [
-                    "",
-                    [
-                      "arn:aws:es:us-east-1:123456789012:domain/",
-                      {
-                        "Ref": "DomainName"
-                      },
-                      "/*"
-                    ]
-                  ]
-                }
-              }
-            ]
-          },
-          "SnapshotOptions": {},
-          "CognitoOptions": {
-            "Enabled": false
-          },
-          "AdvancedSecurityOptions": {
-            "Enabled": true,
-            "InternalUserDatabaseEnabled": true,
-            "MasterUserOptions": {
-              "MasterUserName": {
-                "Ref": "Username"
+    }
+  },
+  "Resources": {
+    "OpenSearchServiceDomain": {
+      "Type": "AWS::OpenSearchService::Domain",
+      "Properties": {
+        "DomainName": {
+          "Ref": "DomainName"
+        },
+        "EngineVersion": "OpenSearch_1.1",
+        "ClusterConfig": {
+          "DedicatedMasterEnabled": false,
+          "InstanceCount": "1",
+          "ZoneAwarenessEnabled": false,
+          "InstanceType": "t3.medium.search"
+        },
+        "EBSOptions": {
+          "EBSEnabled": true,
+          "Iops": "0",
+          "VolumeSize": "20",
+          "VolumeType": "gp2"
+        },
+        "AccessPolicies": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "AWS": "*"
               },
-              "MasterUserPassword": {
-                "Ref": "Password"
+              "Action": "es:ESHttp",
+              "Resource": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:aws:es:us-east-1:123456789012:domain/",
+                    {
+                      "Ref": "DomainName"
+                    },
+                    "/*"
+                  ]
+                ]
               }
+            }
+          ]
+        },
+        "SnapshotOptions": {},
+        "CognitoOptions": {
+          "Enabled": false
+        },
+        "AdvancedSecurityOptions": {
+          "Enabled": true,
+          "InternalUserDatabaseEnabled": true,
+          "MasterUserOptions": {
+            "MasterUserName": {
+              "Ref": "Username"
+            },
+            "MasterUserPassword": {
+              "Ref": "Password"
             }
           }
         }
       }
-    },
-    "Outputs": {
-      "OSSClusterDomainEndpoint": {
-        "Value": {
-          "Fn::GetAtt": "OpenSearchServiceDomain.DomainEndpoint"
-        }
+    }
+  },
+  "Outputs": {
+    "OSSClusterDomainEndpoint": {
+      "Value": {
+        "Fn::GetAtt": "OpenSearchServiceDomain.DomainEndpoint"
       }
     }
   }
