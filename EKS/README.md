@@ -29,7 +29,7 @@ aws configure set output json
 aws eks --region $AWS_REGION update-kubeconfig --name $AWS_EKS_CLUSTER
 ```
 
-3. Execute ```kubectl get svc``` to test the connectivity to the EKS cluster.
+3. Execute `kubectl get svc` to test the connectivity to the EKS cluster.
 
 4. The output should be similar to the one provided below.
 
@@ -45,45 +45,59 @@ Note: These instructions are using github.com/tchangkiat/sample-express-api as t
 1. Execute the following commands:
 
 ```bash
+# Create an IAM OIDC provider for your cluster. This is required to use IAM roles for service accounts
 eksctl utils associate-iam-oidc-provider --region=$AWS_REGION --cluster=$AWS_EKS_CLUSTER --approve
 
+# Create a namespace for App Mesh
 kubectl create namespace appmesh-system
 
-kubectl apply -k "https://github.com/aws/eks-charts/stable/appmesh-controller/crds?ref=master"
-
+# Add the EKS repository to Helm
 helm repo add eks https://aws.github.io/eks-charts
 
+# Install the App Mesh CRDs
+kubectl apply -k "https://github.com/aws/eks-charts/stable/appmesh-controller/crds?ref=master"
+
+# Create IAM role and service account pair for App Mesh
 eksctl create iamserviceaccount --namespace appmesh-system --name appmesh-controller --attach-policy-arn arn:aws:iam::aws:policy/AWSCloudMapFullAccess,arn:aws:iam::aws:policy/AWSAppMeshFullAccess,arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess --cluster $AWS_EKS_CLUSTER --approve
 
+# Install App Mesh Controller
 helm upgrade -i appmesh-controller eks/appmesh-controller --namespace appmesh-system --set region=$AWS_REGION --set serviceAccount.create=false --set serviceAccount.name=appmesh-controller
 
+# Configure default namespace for mesh
 kubectl apply -f "https://raw.githubusercontent.com/tchangkiat/sample-express-api/master/k8s/eks/appmesh-namespace.yaml"
 
+# Create the mesh
 kubectl apply -f "https://raw.githubusercontent.com/tchangkiat/sample-express-api/master/k8s/eks/appmesh.yaml"
 
+# Create the virtual node
 kubectl apply -f "https://raw.githubusercontent.com/tchangkiat/sample-express-api/master/k8s/eks/appmesh-virtualnode.yaml"
 
+# Create the virtual router
 kubectl apply -f "https://raw.githubusercontent.com/tchangkiat/sample-express-api/master/k8s/eks/appmesh-virtualrouter.yaml"
 
+# Create the virtual service
 kubectl apply -f "https://raw.githubusercontent.com/tchangkiat/sample-express-api/master/k8s/eks/appmesh-virtualservice.yaml"
 
+# Download CloudFormation template to create a policy for proxy authorization for App Mesh injector to add the sidecar containers to any pod deployed with a label specified
 curl https://raw.githubusercontent.com/tchangkiat/sample-express-api/master/k8s/eks/proxy-auth-cf.json -o proxy-auth-cf.json
 
+# Create a stack with the template above
 aws cloudformation create-stack --stack-name AppMeshProxyAuthPolicy --template-body file://proxy-auth-cf.json --parameters ParameterKey=MeshName,ParameterValue=default-mesh --capabilities CAPABILITY_NAMED_IAM
 
+# Create IAM role and service account pair for the application
 eksctl create iamserviceaccount --cluster $AWS_EKS_CLUSTER --namespace default --name sample-express-api-service-account --attach-policy-arn arn:aws:iam::$AWS_ACCOUNT_ID:policy/AppMeshProxyAuth-default-mesh --attach-policy-arn arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess --override-existing-serviceaccounts --approve
-
-# Scale up an additional node to fit in 2 sets of sample-express-api and 1 set of AWS App Mesh Pods
-eksctl scale nodegroup --cluster=$AWS_EKS_CLUSTER --nodes=3 --name `eksctl get nodegroup --cluster $AWS_EKS_CLUSTER | grep 'EKSNodeGroup' | awk '{print $2}'`
 ```
 
-2. Deploy the sample application and verify if the Envoy containers are injected:
+2. Deploy the sample application:
 
 ```bash
+# Download the YAML file for deploying the application in the Kubernetes cluster
 curl https://raw.githubusercontent.com/tchangkiat/sample-express-api/master/k8s/deployment.yaml -o deployment.yaml
 
+# Replace [URL] with the URL of the container image
 sed -i "s|\[URL\]|${CONTAINER_IMAGE_URL}|g" deployment.yaml
 
+# Create the deployment
 kubectl apply -f deployment.yaml
 ```
 
@@ -96,14 +110,16 @@ Note: You should set up App Mesh first before setting up AWS X-Ray Integration.
 1. Execute the following commands:
 
 ```bash
+# Update the App Mesh Controller to enable X-Ray so that the X-Ray Daemon will be added automatically in the Pods
 helm upgrade -i appmesh-controller eks/appmesh-controller --namespace appmesh-system --set region=$AWS_REGION --set serviceAccount.create=false --set serviceAccount.name=appmesh-controller --set tracing.enabled=true --set tracing.provider=x-ray
 
+# Restart the deployment for the X-Ray Daemon to be injected in the Pods
 kubectl rollout restart deployment sample-express-api
 ```
 
 2. The X-Ray Daemon containers should be injected in your application Pods automatically.
 
-2. Modify your source code to include and use the AWS X-Ray SDK (this was already done for the sample application).
+3. Modify your source code to include and use the AWS X-Ray SDK (this was already done for the sample application).
 
 # Clean Up
 
