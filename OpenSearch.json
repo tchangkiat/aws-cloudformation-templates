@@ -1,0 +1,114 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "Creates an OpenSearch Service Cluster. Configuration is catered for development environment",
+  "Metadata": {
+    "AWS::CloudFormation::Interface": {
+      "ParameterGroups": [
+        {
+          "Label": {
+            "default": "OpenSearch Service Cluster Configurations"
+          },
+          "Parameters": ["DomainName", "Username", "Password"]
+        }
+      ],
+      "ParameterLabels": {
+        "DomainName": {
+          "default": "Domain Name of the OpenSearch Service Cluster"
+        },
+        "Username": {
+          "default": "Username of the master account"
+        },
+        "Password": {
+          "default": "Password of the master account"
+        }
+      }
+    }
+  },
+  "Parameters": {
+    "DomainName": {
+      "Type": "String",
+      "Default": "oss_cluster",
+      "Description": "Enter a domain name"
+    },
+    "Username": {
+      "Type": "String",
+      "Default": "oss_user",
+      "Description": "Enter a username for the master account"
+    },
+    "Password": {
+      "Type": "String",
+      "NoEcho": true,
+      "Description": "Enter a password for the master account"
+    },
+    "Resources": {
+      "OpenSearchServiceDomain": {
+        "Type": "AWS::OpenSearchService::Domain",
+        "Properties": {
+          "DomainName": {
+            "Ref": "DomainName"
+          },
+          "EngineVersion": "OpenSearch_1.1",
+          "ClusterConfig": {
+            "DedicatedMasterEnabled": false,
+            "InstanceCount": "1",
+            "ZoneAwarenessEnabled": false,
+            "InstanceType": "t3.medium.search"
+          },
+          "EBSOptions": {
+            "EBSEnabled": true,
+            "Iops": "0",
+            "VolumeSize": "20",
+            "VolumeType": "gp2"
+          },
+          "AccessPolicies": {
+            "Version": "2012-10-17",
+            "Statement": [
+              {
+                "Effect": "Allow",
+                "Principal": {
+                  "AWS": "*"
+                },
+                "Action": "es:ESHttp",
+                "Resource": {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:aws:es:us-east-1:123456789012:domain/",
+                      {
+                        "Ref": "DomainName"
+                      },
+                      "/*"
+                    ]
+                  ]
+                }
+              }
+            ]
+          },
+          "SnapshotOptions": {},
+          "CognitoOptions": {
+            "Enabled": false
+          },
+          "AdvancedSecurityOptions": {
+            "Enabled": true,
+            "InternalUserDatabaseEnabled": true,
+            "MasterUserOptions": {
+              "MasterUserName": {
+                "Ref": "Username"
+              },
+              "MasterUserPassword": {
+                "Ref": "Password"
+              }
+            }
+          }
+        }
+      }
+    },
+    "Outputs": {
+      "OSSClusterDomainEndpoint": {
+        "Value": {
+          "Fn::GetAtt": "OpenSearchServiceDomain.DomainEndpoint"
+        }
+      }
+    }
+  }
+}
