@@ -2,7 +2,7 @@
 
 1. Create a stack with VPC.json in Network folder.
 2. Create an EC2 key pair separately, which will be used to SSH into the bastion host.
-3. Create a stack with EKS.json, with parameters referencing subnets created by VPC.json and the key pair which you have created in step 2. This template takes about 25 minutes or so to complete.
+3. Create a stack with EKS.json, with parameters referencing subnets created by VPC.json and the key pair which you have created in step 2. CloudFormation will take about 25 minutes or so to provision the resources in this template.
 
 # Set Up Connection to the EKS Cluster
 
@@ -40,7 +40,7 @@ svc/kubernetes   ClusterIP   10.100.0.1   <none>        443/TCP   1m
 
 # Set up AWS App Mesh (optional)
 
-Note: These instructions are using github.com/tchangkiat/sample-express-api as the application. You may download the configuration (e.g. yaml, json) files and modify them to cater to your application.
+Note: These instructions are using github.com/tchangkiat/sample-express-api as the application. You may download the configuration (e.g. yaml, json) files and modify them for your application.
 
 1. Execute the following commands:
 
