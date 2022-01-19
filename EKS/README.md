@@ -121,15 +121,124 @@ kubectl rollout restart deployment sample-express-api
 
 3. Modify your source code to include and use the AWS X-Ray SDK (this was already done for the sample application).
 
+# Set up logging with Amazon OpenSearch and Fluent Bit (optional)
+
+Credit: [EKS Workshop](https://www.eksworkshop.com/intermediate/230_logging/).
+
+1. Create an OpenSearch Service cluster using OpenSearch.json in the root folder.
+
+2. Execute the following commands to set up the cluster and the necessary IAM roles and Kubernetes service account for logging:
+
+```bash
+# Create an IAM OIDC provider for your cluster. This is required to use IAM roles for service accounts
+eksctl utils associate-iam-oidc-provider --region=$AWS_REGION --cluster=$AWS_EKS_CLUSTER --approve
+
+# Create a new namespace in the EKS cluster
+kubectl create namespace logging
+
+# Replace the value with the domain name of the OpenSearch service cluster which you have created in Step 1
+export AWS_OSS_DOMAIN_NAME=oss-cluster
+echo 'export AWS_OSS_DOMAIN_NAME=oss-cluster' >> ~/.bashrc
+
+# Create a policy for the Fluent Bit service account and IAM role pair
+cat <<EoF > fluent-bit-policy.json
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Action": [
+                "es:ESHttp*"
+            ],
+            "Resource": "arn:aws:es:${AWS_REGION}:${AWS_ACCOUNT_ID}:domain/${AWS_OSS_DOMAIN_NAME}/*",
+            "Effect": "Allow"
+        }
+    ]
+}
+EoF
+
+aws iam create-policy --policy-name fluent-bit-policy --policy-document file://~/fluent-bit-policy.json
+
+eksctl create iamserviceaccount \
+    --name fluent-bit \
+    --namespace logging \
+    --cluster ${AWS_EKS_CLUSTER} \
+    --attach-policy-arn "arn:aws:iam::${AWS_ACCOUNT_ID}:policy/fluent-bit-policy" \
+    --approve \
+    --override-existing-serviceaccounts
+```
+
+3. Execute the following commands to map roles to users for OpenSearch Service cluster
+
+```bash
+# Replace the value with the master account username of the OpenSearch service cluster
+export AWS_OSS_MASTER_ACCOUNT=oss-user
+
+# Replace the value with the master account password of the OpenSearch service cluster
+export AWS_OSS_MASTER_ACCOUNT_PASSWORD=<Password>
+
+# Get the Fluent Bit Role ARN
+export FLUENTBIT_ROLE=$(eksctl get iamserviceaccount --cluster $AWS_EKS_CLUSTER --namespace logging -o json | jq '.[].status.roleARN' -r)
+echo "export FLUENTBIT_ROLE=$(eksctl get iamserviceaccount --cluster ${AWS_EKS_CLUSTER} --namespace logging -o json | jq '.[].status.roleARN' -r)" >> ~/.bashrc
+
+# Get the Amazon OpenSearch Endpoint
+export AWS_OSS_ENDPOINT=$(aws opensearch describe-domain --domain-name $AWS_OSS_DOMAIN_NAME --output text --query "DomainStatus.Endpoint")
+echo "export AWS_OSS_ENDPOINT=$(aws opensearch describe-domain --domain-name ${AWS_OSS_DOMAIN_NAME} --output text --query "DomainStatus.Endpoint")" >> ~/.bashrc
+
+# Update the OpenSearch internal database
+curl -sS -u "${AWS_OSS_MASTER_ACCOUNT}:${AWS_OSS_MASTER_ACCOUNT_PASSWORD}" \
+    -X PATCH \
+    https://${AWS_OSS_ENDPOINT}/_opendistro/_security/api/rolesmapping/all_access?pretty \
+    -H 'Content-Type: application/json' \
+    -d'
+[
+  {
+    "op": "add", "path": "/backend_roles", "value": ["'${FLUENTBIT_ROLE}'"]
+  }
+]
+'
+```
+
+4. Execute the following commands to deploy Fluent Bit:
+
+```bash
+curl -Ss https://raw.githubusercontent.com/tchangkiat/aws-cloudformation-templates/main/EKS/logging/fluentbit.yaml \
+    | envsubst > ~/fluentbit.yaml
+
+kubectl apply -f ~/fluentbit.yaml
+```
+
+5. Run the following command to get the URL to access the OpenSearch Dashboards. Use the master account username and password. Follow [this guide](https://www.eksworkshop.com/intermediate/230_logging/kibana/) to complete the set up in the dashboards.
+
+```bash
+echo "OpenSearch Dashboards URL: https://${AWS_OSS_ENDPOINT}/_dashboards/"
+```
+
 # Clean Up
 
-1. Execute the following command in the Bastion Host if the sample application was set up:
+1. Execute the following command in the Bastion Host if logging (Fluent Bit + OpenSearch) was set up:
+
+```bash
+kubectl delete -f ~/environment/logging/fluentbit.yaml
+
+eksctl delete iamserviceaccount \
+    --name fluent-bit \
+    --namespace logging \
+    --cluster ${AWS_EKS_CLUSTER} \
+    --wait
+
+aws iam delete-policy   \
+  --policy-arn "arn:aws:iam::${AWS_ACCOUNT_ID}:policy/fluent-bit-policy"
+
+kubectl delete namespace logging
+```
+
+2. Execute the following command in the Bastion Host if the sample application was set up:
 
 ```bash
 kubectl delete -f "https://raw.githubusercontent.com/tchangkiat/sample-express-api/master/k8s/deployment.yaml"
 ```
 
-2. Execute the following commands in the Bastion Host if AWS App Mesh was set up:
+3. Execute the following commands in the Bastion Host if AWS App Mesh was set up:
 
 ```bash
 kubectl delete -f "https://raw.githubusercontent.com/tchangkiat/sample-express-api/master/k8s/eks/appmesh-virtualservice.yaml"
@@ -143,4 +252,4 @@ kubectl delete -f "https://raw.githubusercontent.com/tchangkiat/sample-express-a
 helm uninstall appmesh-controller --namespace appmesh-system
 ```
 
-3. Delete all related CloudFormation stacks.
+4. Delete all related CloudFormation stacks.
