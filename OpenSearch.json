@@ -74,7 +74,15 @@
                 "Fn::Join": [
                   "",
                   [
-                    "arn:aws:es:us-east-1:123456789012:domain/",
+                    "arn:aws:es:",
+                    {
+                      "Ref": "AWS::Region"
+                    },
+                    ":",
+                    {
+                      "Ref": "AWS::AccountId"
+                    },
+                    ":domain/",
                     {
                       "Ref": "DomainName"
                     },
