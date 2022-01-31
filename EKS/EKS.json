@@ -198,7 +198,7 @@
       "Type": "AWS::EC2::LaunchTemplate",
       "Properties": {
         "LaunchTemplateName": {
-          "Fn::Join": ["-", [{ "Ref": "EKSCluster" }, "-EKSNodes-Launch-Template"]]
+          "Fn::Join": ["-", [{ "Ref": "EKSCluster" }, "EKSNodes-Launch-Template"]]
         },
         "LaunchTemplateData": {
           "BlockDeviceMappings": [
