@@ -218,7 +218,7 @@ echo "OpenSearch Dashboards URL: https://${AWS_OSS_ENDPOINT}/_dashboards/"
 1. Execute the following command in the Bastion Host if logging (Fluent Bit + OpenSearch) was set up:
 
 ```bash
-kubectl delete -f ~/environment/logging/fluentbit.yaml
+kubectl delete -f ~/fluentbit.yaml
 
 eksctl delete iamserviceaccount \
     --name fluent-bit \
