@@ -82,7 +82,7 @@ kubectl apply -f "https://raw.githubusercontent.com/tchangkiat/sample-express-ap
 curl https://raw.githubusercontent.com/tchangkiat/sample-express-api/master/k8s/eks/proxy-auth-cf.json -o proxy-auth-cf.json
 
 # Create a stack with the template above
-aws cloudformation create-stack --stack-name AppMeshProxyAuthPolicy --template-body file://proxy-auth-cf.json --parameters ParameterKey=MeshName,ParameterValue=sampleexpressapi-mesh --capabilities CAPABILITY_NAMED_IAM
+aws cloudformation create-stack --stack-name $AWS_EKS_CLUSTER-AppMeshProxyAuthPolicy --template-body file://proxy-auth-cf.json --parameters ParameterKey=MeshName,ParameterValue=sampleexpressapi-mesh --capabilities CAPABILITY_NAMED_IAM
 
 # Create IAM role and service account pair for the application
 eksctl create iamserviceaccount --cluster $AWS_EKS_CLUSTER --namespace sampleexpressapi --name sample-express-api-service-account --attach-policy-arn arn:aws:iam::$AWS_ACCOUNT_ID:policy/AppMeshProxyAuth-sampleexpressapi-mesh --attach-policy-arn arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess --override-existing-serviceaccounts --approve
@@ -98,7 +98,7 @@ curl https://raw.githubusercontent.com/tchangkiat/sample-express-api/master/k8s/
 sed -i "s|\[URL\]|${CONTAINER_IMAGE_URL}|g" deployment.yaml
 
 # Create the deployment
-kubectl apply -f deployment.yaml
+kubectl apply -f deployment.yaml -n sampleexpressapi
 ```
 
 3. The Envoy containers should be injected in your application Pods automatically.
@@ -114,7 +114,7 @@ Note: You should set up App Mesh first before setting up AWS X-Ray Integration.
 helm upgrade -i appmesh-controller eks/appmesh-controller --namespace appmesh-system --set region=$AWS_REGION --set serviceAccount.create=false --set serviceAccount.name=appmesh-controller --set tracing.enabled=true --set tracing.provider=x-ray
 
 # Restart the deployment for the X-Ray Daemon to be injected in the Pods
-kubectl rollout restart deployment sample-express-api
+kubectl rollout restart deployment sample-express-api -n sampleexpressapi
 ```
 
 2. The X-Ray Daemon containers should be injected in your application Pods automatically.
