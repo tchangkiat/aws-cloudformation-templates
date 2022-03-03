@@ -63,7 +63,7 @@ eksctl create iamserviceaccount --namespace appmesh-system --name appmesh-contro
 # Install App Mesh Controller
 helm upgrade -i appmesh-controller eks/appmesh-controller --namespace appmesh-system --set region=$AWS_REGION --set serviceAccount.create=false --set serviceAccount.name=appmesh-controller
 
-# Configure default namespace for mesh
+# Configure 'sampleexpressapi' namespace for mesh
 kubectl apply -f "https://raw.githubusercontent.com/tchangkiat/sample-express-api/master/k8s/eks/appmesh-namespace.yaml"
 
 # Create the mesh
@@ -82,10 +82,10 @@ kubectl apply -f "https://raw.githubusercontent.com/tchangkiat/sample-express-ap
 curl https://raw.githubusercontent.com/tchangkiat/sample-express-api/master/k8s/eks/proxy-auth-cf.json -o proxy-auth-cf.json
 
 # Create a stack with the template above
-aws cloudformation create-stack --stack-name AppMeshProxyAuthPolicy --template-body file://proxy-auth-cf.json --parameters ParameterKey=MeshName,ParameterValue=default-mesh --capabilities CAPABILITY_NAMED_IAM
+aws cloudformation create-stack --stack-name AppMeshProxyAuthPolicy --template-body file://proxy-auth-cf.json --parameters ParameterKey=MeshName,ParameterValue=sampleexpressapi-mesh --capabilities CAPABILITY_NAMED_IAM
 
 # Create IAM role and service account pair for the application
-eksctl create iamserviceaccount --cluster $AWS_EKS_CLUSTER --namespace default --name sample-express-api-service-account --attach-policy-arn arn:aws:iam::$AWS_ACCOUNT_ID:policy/AppMeshProxyAuth-default-mesh --attach-policy-arn arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess --override-existing-serviceaccounts --approve
+eksctl create iamserviceaccount --cluster $AWS_EKS_CLUSTER --namespace sampleexpressapi --name sample-express-api-service-account --attach-policy-arn arn:aws:iam::$AWS_ACCOUNT_ID:policy/AppMeshProxyAuth-sampleexpressapi-mesh --attach-policy-arn arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess --override-existing-serviceaccounts --approve
 ```
 
 2. Deploy the sample application:
