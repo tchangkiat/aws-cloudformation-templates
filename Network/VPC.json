@@ -1,6 +1,6 @@
 {
   "AWSTemplateFormatVersion": "2010-09-09",
-  "Description": "This template sets up a VPC with 2 public and 2 private subnets",
+  "Description": "This template sets up a VPC with 2 public and 2 private subnets. The public subnets contain a NAT gateway each.",
   "Metadata": {
     "AWS::CloudFormation::Interface": {
       "ParameterGroups": [
