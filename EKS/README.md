@@ -235,7 +235,7 @@ kubectl delete namespace logging
 2. Execute the following command in the Bastion Host if the sample application was set up:
 
 ```bash
-kubectl delete -f "https://raw.githubusercontent.com/tchangkiat/sample-express-api/master/k8s/deployment.yaml"
+kubectl delete -f "https://raw.githubusercontent.com/tchangkiat/sample-express-api/master/k8s/deployment.yaml" -n sampleexpressapi
 ```
 
 3. Execute the following commands in the Bastion Host if AWS App Mesh was set up:
