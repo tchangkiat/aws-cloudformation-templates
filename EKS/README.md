@@ -253,3 +253,5 @@ helm uninstall appmesh-controller --namespace appmesh-system
 ```
 
 4. Delete all related CloudFormation stacks.
+
+5. Remove "fluent-bit-policy" from IAM policies.
