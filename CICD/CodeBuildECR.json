@@ -23,8 +23,8 @@
   "Parameters": {
     "ProcessorArchitecture": {
       "Type": "String",
-      "Default": "X64",
-      "AllowedValues": ["X64", "ARM64"],
+      "Default": "x86_64",
+      "AllowedValues": ["x86_64", "ARM64"],
       "Description": "Select a processor architecture"
     },
     "Project": {
@@ -131,11 +131,7 @@
         },
         "Environment": {
           "Type": {
-            "Fn::If": [
-              "ARM64Architecture",
-              "ARM_CONTAINER",
-              "LINUX_CONTAINER"
-            ]
+            "Fn::If": ["ARM64Architecture", "ARM_CONTAINER", "LINUX_CONTAINER"]
           },
           "ComputeType": "BUILD_GENERAL1_SMALL",
           "Image": {
