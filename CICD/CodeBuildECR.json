@@ -6,15 +6,27 @@
       "ParameterGroups": [
         {
           "Label": { "default": "General Configurations" },
-          "Parameters": ["Project", "Environment", "RepositoryURL"]
+          "Parameters": [
+            "ProcessorArchitecture",
+            "Project",
+            "Environment",
+            "RepositoryURL"
+          ]
         }
       ],
       "ParameterLabels": {
-        "RepositoryURL": { "default": "URL of Code Repository" }
+        "RepositoryURL": { "default": "URL of Code Repository" },
+        "ProcessorArchitecture": { "default": "Processor Architecture" }
       }
     }
   },
   "Parameters": {
+    "ProcessorArchitecture": {
+      "Type": "String",
+      "Default": "X64",
+      "AllowedValues": ["X64", "ARM64"],
+      "Description": "Select a processor architecture"
+    },
     "Project": {
       "Type": "String",
       "Default": "sample-express-api",
@@ -29,6 +41,16 @@
       "Type": "String",
       "Default": "https://github.com/tchangkiat/sample-express-api",
       "Description": "Enter the URL of the public GitHub repository"
+    }
+  },
+  "Conditions": {
+    "ARM64Architecture": {
+      "Fn::Equals": [
+        {
+          "Ref": "ProcessorArchitecture"
+        },
+        "ARM64"
+      ]
     }
   },
   "Resources": {
@@ -108,9 +130,21 @@
           "Type": "no_artifacts"
         },
         "Environment": {
-          "Type": "LINUX_CONTAINER",
+          "Type": {
+            "Fn::If": [
+              "ARM64Architecture",
+              "ARM_CONTAINER",
+              "LINUX_CONTAINER"
+            ]
+          },
           "ComputeType": "BUILD_GENERAL1_SMALL",
-          "Image": "aws/codebuild/amazonlinux2-x86_64-standard:3.0",
+          "Image": {
+            "Fn::If": [
+              "ARM64Architecture",
+              "aws/codebuild/amazonlinux2-aarch64-standard:2.0",
+              "aws/codebuild/amazonlinux2-x86_64-standard:3.0"
+            ]
+          },
           "PrivilegedMode": true,
           "EnvironmentVariables": [
             {
@@ -137,8 +171,8 @@
         },
         "LogsConfig": {
           "CloudWatchLogs": {
-            "Status" : "DISABLED"
-          }          
+            "Status": "DISABLED"
+          }
         },
         "Source": {
           "GitCloneDepth": 1,
