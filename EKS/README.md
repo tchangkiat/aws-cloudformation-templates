@@ -201,6 +201,11 @@ curl -sS -u "${AWS_OSS_MASTER_ACCOUNT}:${AWS_OSS_MASTER_ACCOUNT_PASSWORD}" \
 4. Execute the following commands to deploy Fluent Bit:
 
 ```bash
+# For ARM64 architecture
+curl -Ss https://raw.githubusercontent.com/tchangkiat/aws-cloudformation-templates/main/EKS/logging/fluentbit-arm64.yaml \
+    | envsubst > ~/fluentbit.yaml
+
+# For X86_64 architecture
 curl -Ss https://raw.githubusercontent.com/tchangkiat/aws-cloudformation-templates/main/EKS/logging/fluentbit.yaml \
     | envsubst > ~/fluentbit.yaml
 
