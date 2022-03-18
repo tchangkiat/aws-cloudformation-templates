@@ -17,7 +17,7 @@
         {
           "Label": { "default": "Bastion Host Configurations" },
           "Parameters": [
-            "BastionHostImagex8664",
+            "BastionHostImagex86",
             "BastionHostImageARM64",
             "BastionHostKeyPair",
             "BastionHostSubnet"
@@ -27,8 +27,8 @@
       "ParameterLabels": {
         "ProcessorArchitecture": { "default": "Processor Architecture" },
         "EKSNodesSubnets": { "default": "Subnets of EKS Nodes" },
-        "BastionHostImagex8664": {
-          "default": "Bastion Host Machine Image (x86_64)"
+        "BastionHostImagex86": {
+          "default": "Bastion Host Machine Image (x86)"
         },
         "BastionHostImageARM64": {
           "default": "Bastion Host Machine Image (ARM64)"
@@ -41,8 +41,8 @@
   "Parameters": {
     "ProcessorArchitecture": {
       "Type": "String",
-      "Default": "x86_64",
-      "AllowedValues": ["x86_64", "ARM64"],
+      "Default": "x86",
+      "AllowedValues": ["x86", "ARM64"],
       "Description": "Select a processor architecture"
     },
     "Project": {
@@ -63,7 +63,7 @@
       "Type": "List<AWS::EC2::Subnet::Id>",
       "Description": "Select 2 PRIVATE subnets for the EKS nodes"
     },
-    "BastionHostImagex8664": {
+    "BastionHostImagex86": {
       "Type": "AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>",
       "Default": "/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2",
       "Description": "Recommended to stick with the default value"
@@ -321,7 +321,7 @@
           "Fn::If": [
             "ARM64Architecture",
             { "Ref": "BastionHostImageARM64" },
-            { "Ref": "BastionHostImagex8664" }
+            { "Ref": "BastionHostImagex86" }
           ]
         },
         "InstanceType": {

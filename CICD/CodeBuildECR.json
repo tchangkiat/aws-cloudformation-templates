@@ -23,8 +23,8 @@
   "Parameters": {
     "ProcessorArchitecture": {
       "Type": "String",
-      "Default": "x86_64",
-      "AllowedValues": ["x86_64", "ARM64"],
+      "Default": "x86",
+      "AllowedValues": ["x86", "ARM64"],
       "Description": "Select a processor architecture"
     },
     "Project": {
