@@ -7,18 +7,43 @@
         {
           "Label": { "default": "General Configurations" },
           "Parameters": ["Project", "Environment", "RepositoryURL"]
+        },
+        {
+          "Label": { "default": "CodePipeline Configurations" },
+          "Parameters": [
+            "CodePipelineSourceConnectionArn",
+            "CodePipelineSourceRepo",
+            "CodePipelineSourceBranchName"
+          ]
         }
       ],
       "ParameterLabels": {
+        "CodePipelineSourceConnectionArn": { "default": "Connection ARN" },
+        "CodePipelineSourceRepo": { "default": "Repository" },
+        "CodePipelineSourceBranchName": { "default": "Repository Branch" },
         "RepositoryURL": { "default": "URL of Code Repository" }
       }
     }
   },
   "Parameters": {
+    "CodePipelineSourceConnectionArn": {
+      "Type": "String",
+      "Description": "Visit https://console.aws.amazon.com/codesuite/settings/connections to create a connection to GitHub and enter the ARN of the connection here"
+    },
+    "CodePipelineSourceRepo": {
+      "Type": "String",
+      "Default": "tchangkiat/sample-express-api",
+      "Description": "Enter the full repository ID (e.g. tchangkiat/sample-express-api)"
+    },
+    "CodePipelineSourceBranchName": {
+      "Type": "String",
+      "Default": "master",
+      "Description": "Enter the branch name of the repository"
+    },
     "Project": {
       "Type": "String",
       "Default": "sample-express-api-multi-arch",
-      "Description": "Enter a project name"
+      "Description": "Enter a project name (use only lowercase and '-')"
     },
     "Environment": {
       "Type": "String",
@@ -37,7 +62,7 @@
       "Properties": {
         "RepositoryName": { "Ref": "Project" },
         "LifecyclePolicy": {
-          "LifecyclePolicyText": "{\n            \"rules\": [\n              {\n                \"rulePriority\": 1,\n                \"description\": \"Keep only 5 images\",\n                \"selection\": {\n                  \"tagStatus\": \"any\",\n                  \"countType\": \"imageCountMoreThan\",\n                  \"countNumber\": 5\n                },\n                \"action\": { \"type\": \"expire\" }\n              }\n            ]\n          }"
+          "LifecyclePolicyText": "{\n            \"rules\": [\n              {\n                \"rulePriority\": 1,\n                \"description\": \"Keep only 6 images\",\n                \"selection\": {\n                  \"tagStatus\": \"any\",\n                  \"countType\": \"imageCountMoreThan\",\n                  \"countNumber\": 6\n                },\n                \"action\": { \"type\": \"expire\" }\n              }\n            ]\n          }"
         }
       }
     },
@@ -283,6 +308,14 @@
         "Tags": [{ "Key": "Environment", "Value": { "Ref": "Environment" } }]
       }
     },
+    "S3BucketForCodePipelineArtifacts": {
+      "Type": "AWS::S3::Bucket",
+      "Properties": {
+        "BucketName": {
+          "Fn::Join": ["-", [{ "Ref": "Project" }, "codepipeline", "artifacts"]]
+        }
+      }
+    },
     "CodePipelineServiceRole": {
       "Type": "AWS::IAM::Role",
       "Properties": {
@@ -486,6 +519,92 @@
             }
           }
         ]
+      }
+    },
+    "CodePipeline": {
+      "Type": "AWS::CodePipeline::Pipeline",
+      "Properties": {
+        "RoleArn": { "Fn::GetAtt": ["CodePipelineServiceRole", "Arn"] },
+        "Stages": [
+          {
+            "Name": "Source",
+            "Actions": [
+              {
+                "Name": "GitHub",
+                "ActionTypeId": {
+                  "Category": "Source",
+                  "Owner": "AWS",
+                  "Version": "1",
+                  "Provider": "CodeStarSourceConnection"
+                },
+                "OutputArtifacts": [{ "Name": "SourceArtifact" }],
+                "Configuration": {
+                  "ConnectionArn": { "Ref": "CodePipelineSourceConnectionArn" },
+                  "FullRepositoryId": { "Ref": "CodePipelineSourceRepo" },
+                  "BranchName": { "Ref": "CodePipelineSourceBranchName" }
+                },
+                "RunOrder": 1
+              }
+            ]
+          },
+          {
+            "Name": "Build-Docker-Images",
+            "Actions": [
+              {
+                "Name": "x86",
+                "ActionTypeId": {
+                  "Category": "Build",
+                  "Owner": "AWS",
+                  "Version": "1",
+                  "Provider": "CodeBuild"
+                },
+                "InputArtifacts": [{ "Name": "SourceArtifact" }],
+                "Configuration": {
+                  "ProjectName": { "Ref": "CodeBuildProjectx86" }
+                },
+                "RunOrder": 1
+              },
+              {
+                "Name": "ARM64",
+                "ActionTypeId": {
+                  "Category": "Build",
+                  "Owner": "AWS",
+                  "Version": "1",
+                  "Provider": "CodeBuild"
+                },
+                "InputArtifacts": [{ "Name": "SourceArtifact" }],
+                "Configuration": {
+                  "ProjectName": { "Ref": "CodeBuildProjectARM64" }
+                },
+                "RunOrder": 1
+              }
+            ]
+          },
+          {
+            "Name": "Build-Docker-Manifest",
+            "Actions": [
+              {
+                "Name": "Manifest",
+                "ActionTypeId": {
+                  "Category": "Build",
+                  "Owner": "AWS",
+                  "Version": "1",
+                  "Provider": "CodeBuild"
+                },
+                "InputArtifacts": [{ "Name": "SourceArtifact" }],
+                "Configuration": {
+                  "ProjectName": { "Ref": "CodeBuildProjectDockerManifest" }
+                },
+                "RunOrder": 1
+              }
+            ]
+          }
+        ],
+        "ArtifactStore": {
+          "Type": "S3",
+          "Location": { "Ref": "S3BucketForCodePipelineArtifacts" }
+        },
+        "Tags": [{ "Key": "Environment", "Value": { "Ref": "Environment" } }]
       }
     }
   },
