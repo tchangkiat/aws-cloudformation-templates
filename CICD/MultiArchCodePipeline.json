@@ -1,0 +1,497 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "Building Docker image for x86 and ARM64 architecture from a public GitHub repository and publish to ECR",
+  "Metadata": {
+    "AWS::CloudFormation::Interface": {
+      "ParameterGroups": [
+        {
+          "Label": { "default": "General Configurations" },
+          "Parameters": ["Project", "Environment", "RepositoryURL"]
+        }
+      ],
+      "ParameterLabels": {
+        "RepositoryURL": { "default": "URL of Code Repository" }
+      }
+    }
+  },
+  "Parameters": {
+    "Project": {
+      "Type": "String",
+      "Default": "sample-express-api-multi-arch",
+      "Description": "Enter a project name"
+    },
+    "Environment": {
+      "Type": "String",
+      "Default": "Development",
+      "Description": "Describe the environment (e.g. development, production)"
+    },
+    "RepositoryURL": {
+      "Type": "String",
+      "Default": "https://github.com/tchangkiat/sample-express-api",
+      "Description": "Enter the URL of the public GitHub repository"
+    }
+  },
+  "Resources": {
+    "ImageRepository": {
+      "Type": "AWS::ECR::Repository",
+      "Properties": {
+        "RepositoryName": { "Ref": "Project" },
+        "LifecyclePolicy": {
+          "LifecyclePolicyText": "{\n            \"rules\": [\n              {\n                \"rulePriority\": 1,\n                \"description\": \"Keep only 5 images\",\n                \"selection\": {\n                  \"tagStatus\": \"any\",\n                  \"countType\": \"imageCountMoreThan\",\n                  \"countNumber\": 5\n                },\n                \"action\": { \"type\": \"expire\" }\n              }\n            ]\n          }"
+        }
+      }
+    },
+    "CodeBuildServiceRole": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "RoleName": {
+          "Fn::Join": ["-", ["CodeBuildServiceRole", { "Ref": "Project" }]]
+        },
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "Service": ["codebuild.amazonaws.com"]
+              },
+              "Action": ["sts:AssumeRole"]
+            }
+          ]
+        },
+        "Path": "/",
+        "Policies": [
+          {
+            "PolicyName": "CodeBuildServiceRolePolicy",
+            "PolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "ecr:BatchCheckLayerAvailability",
+                    "ecr:BatchGetImage",
+                    "ecr:CompleteLayerUpload",
+                    "ecr:GetAuthorizationToken",
+                    "ecr:GetDownloadUrlForLayer",
+                    "ecr:InitiateLayerUpload",
+                    "ecr:PutImage",
+                    "ecr:UploadLayerPart"
+                  ],
+                  "Resource": "*"
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "codebuild:CreateReportGroup",
+                    "codebuild:CreateReport",
+                    "codebuild:UpdateReport",
+                    "codebuild:BatchPutTestCases",
+                    "codebuild:BatchPutCodeCoverages",
+                    "codebuild:StartBuild",
+                    "codebuild:StopBuild",
+                    "codebuild:RetryBuild"
+                  ],
+                  "Resource": "*"
+                },
+                {
+                  "Effect": "Allow",
+                  "Resource": "*",
+                  "Action": [
+                    "s3:PutObject",
+                    "s3:GetObject",
+                    "s3:GetObjectVersion"
+                  ]
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": ["ssm:GetParameters"],
+                  "Resource": "*"
+                },
+                {
+                  "Effect": "Allow",
+                  "Resource": "*",
+                  "Action": [
+                    "logs:CreateLogGroup",
+                    "logs:CreateLogStream",
+                    "logs:PutLogEvents"
+                  ]
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "CodeBuildProjectx86": {
+      "Type": "AWS::CodeBuild::Project",
+      "Properties": {
+        "Name": {
+          "Fn::Join": ["-", [{ "Ref": "Project" }, "x86"]]
+        },
+        "Description": "Build Docker x86 image from a public GitHub repository and publish to ECR",
+        "ServiceRole": { "Fn::GetAtt": ["CodeBuildServiceRole", "Arn"] },
+        "Artifacts": {
+          "Type": "no_artifacts"
+        },
+        "Environment": {
+          "Type": "LINUX_CONTAINER",
+          "ComputeType": "BUILD_GENERAL1_SMALL",
+          "Image": "aws/codebuild/amazonlinux2-x86_64-standard:3.0",
+          "PrivilegedMode": true,
+          "EnvironmentVariables": [
+            {
+              "Name": "AWS_DEFAULT_REGION",
+              "Type": "PLAINTEXT",
+              "Value": { "Ref": "AWS::Region" }
+            },
+            {
+              "Name": "AWS_ACCOUNT_ID",
+              "Type": "PLAINTEXT",
+              "Value": { "Ref": "AWS::AccountId" }
+            },
+            {
+              "Name": "IMAGE_REPO",
+              "Type": "PLAINTEXT",
+              "Value": { "Ref": "ImageRepository" }
+            },
+            {
+              "Name": "IMAGE_TAG",
+              "Type": "PLAINTEXT",
+              "Value": "latest"
+            }
+          ]
+        },
+        "LogsConfig": {
+          "CloudWatchLogs": {
+            "Status": "DISABLED"
+          }
+        },
+        "Source": {
+          "GitCloneDepth": 1,
+          "Location": { "Ref": "RepositoryURL" },
+          "Type": "GITHUB"
+        },
+        "TimeoutInMinutes": 5,
+        "Tags": [{ "Key": "Environment", "Value": { "Ref": "Environment" } }]
+      }
+    },
+    "CodeBuildProjectARM64": {
+      "Type": "AWS::CodeBuild::Project",
+      "Properties": {
+        "Name": {
+          "Fn::Join": ["-", [{ "Ref": "Project" }, "arm64"]]
+        },
+        "Description": "Build Docker ARM64 image from a public GitHub repository and publish to ECR",
+        "ServiceRole": { "Fn::GetAtt": ["CodeBuildServiceRole", "Arn"] },
+        "Artifacts": {
+          "Type": "no_artifacts"
+        },
+        "Environment": {
+          "Type": "ARM_CONTAINER",
+          "ComputeType": "BUILD_GENERAL1_SMALL",
+          "Image": "aws/codebuild/amazonlinux2-aarch64-standard:2.0",
+          "PrivilegedMode": true,
+          "EnvironmentVariables": [
+            {
+              "Name": "AWS_DEFAULT_REGION",
+              "Type": "PLAINTEXT",
+              "Value": { "Ref": "AWS::Region" }
+            },
+            {
+              "Name": "AWS_ACCOUNT_ID",
+              "Type": "PLAINTEXT",
+              "Value": { "Ref": "AWS::AccountId" }
+            },
+            {
+              "Name": "IMAGE_REPO",
+              "Type": "PLAINTEXT",
+              "Value": { "Ref": "ImageRepository" }
+            },
+            {
+              "Name": "IMAGE_TAG",
+              "Type": "PLAINTEXT",
+              "Value": "arm64-latest"
+            }
+          ]
+        },
+        "LogsConfig": {
+          "CloudWatchLogs": {
+            "Status": "DISABLED"
+          }
+        },
+        "Source": {
+          "GitCloneDepth": 1,
+          "Location": { "Ref": "RepositoryURL" },
+          "Type": "GITHUB"
+        },
+        "TimeoutInMinutes": 5,
+        "Tags": [{ "Key": "Environment", "Value": { "Ref": "Environment" } }]
+      }
+    },
+    "CodeBuildProjectDockerManifest": {
+      "Type": "AWS::CodeBuild::Project",
+      "Properties": {
+        "Name": {
+          "Fn::Join": ["-", [{ "Ref": "Project" }, "manifest"]]
+        },
+        "Description": "Build Docker manifest and publish to ECR",
+        "ServiceRole": { "Fn::GetAtt": ["CodeBuildServiceRole", "Arn"] },
+        "Artifacts": {
+          "Type": "no_artifacts"
+        },
+        "Environment": {
+          "Type": "LINUX_CONTAINER",
+          "ComputeType": "BUILD_GENERAL1_SMALL",
+          "Image": "aws/codebuild/amazonlinux2-x86_64-standard:3.0",
+          "PrivilegedMode": true,
+          "EnvironmentVariables": [
+            {
+              "Name": "AWS_DEFAULT_REGION",
+              "Type": "PLAINTEXT",
+              "Value": { "Ref": "AWS::Region" }
+            },
+            {
+              "Name": "AWS_ACCOUNT_ID",
+              "Type": "PLAINTEXT",
+              "Value": { "Ref": "AWS::AccountId" }
+            },
+            {
+              "Name": "IMAGE_REPO",
+              "Type": "PLAINTEXT",
+              "Value": { "Ref": "ImageRepository" }
+            },
+            {
+              "Name": "IMAGE_TAG",
+              "Type": "PLAINTEXT",
+              "Value": "arm64-latest"
+            }
+          ]
+        },
+        "LogsConfig": {
+          "CloudWatchLogs": {
+            "Status": "DISABLED"
+          }
+        },
+        "Source": {
+          "BuildSpec": "buildspec-manifest.yml",
+          "GitCloneDepth": 1,
+          "Location": { "Ref": "RepositoryURL" },
+          "Type": "GITHUB"
+        },
+        "TimeoutInMinutes": 5,
+        "Tags": [{ "Key": "Environment", "Value": { "Ref": "Environment" } }]
+      }
+    },
+    "CodePipelineServiceRole": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "RoleName": {
+          "Fn::Join": ["-", ["CodePipelineServiceRole", { "Ref": "Project" }]]
+        },
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "Service": ["codepipeline.amazonaws.com"]
+              },
+              "Action": ["sts:AssumeRole"]
+            }
+          ]
+        },
+        "Path": "/",
+        "Policies": [
+          {
+            "PolicyName": "CodePipelineServiceRolePolicy",
+            "PolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Action": ["iam:PassRole"],
+                  "Resource": "*",
+                  "Effect": "Allow",
+                  "Condition": {
+                    "StringEqualsIfExists": {
+                      "iam:PassedToService": [
+                        "cloudformation.amazonaws.com",
+                        "elasticbeanstalk.amazonaws.com",
+                        "ec2.amazonaws.com",
+                        "ecs-tasks.amazonaws.com"
+                      ]
+                    }
+                  }
+                },
+                {
+                  "Action": [
+                    "codecommit:CancelUploadArchive",
+                    "codecommit:GetBranch",
+                    "codecommit:GetCommit",
+                    "codecommit:GetRepository",
+                    "codecommit:GetUploadArchiveStatus",
+                    "codecommit:UploadArchive"
+                  ],
+                  "Resource": "*",
+                  "Effect": "Allow"
+                },
+                {
+                  "Action": [
+                    "codedeploy:CreateDeployment",
+                    "codedeploy:GetApplication",
+                    "codedeploy:GetApplicationRevision",
+                    "codedeploy:GetDeployment",
+                    "codedeploy:GetDeploymentConfig",
+                    "codedeploy:RegisterApplicationRevision"
+                  ],
+                  "Resource": "*",
+                  "Effect": "Allow"
+                },
+                {
+                  "Action": ["codestar-connections:UseConnection"],
+                  "Resource": "*",
+                  "Effect": "Allow"
+                },
+                {
+                  "Action": [
+                    "elasticbeanstalk:*",
+                    "ec2:*",
+                    "elasticloadbalancing:*",
+                    "autoscaling:*",
+                    "cloudwatch:*",
+                    "s3:*",
+                    "sns:*",
+                    "cloudformation:*",
+                    "rds:*",
+                    "sqs:*",
+                    "ecs:*"
+                  ],
+                  "Resource": "*",
+                  "Effect": "Allow"
+                },
+                {
+                  "Action": ["lambda:InvokeFunction", "lambda:ListFunctions"],
+                  "Resource": "*",
+                  "Effect": "Allow"
+                },
+                {
+                  "Action": [
+                    "opsworks:CreateDeployment",
+                    "opsworks:DescribeApps",
+                    "opsworks:DescribeCommands",
+                    "opsworks:DescribeDeployments",
+                    "opsworks:DescribeInstances",
+                    "opsworks:DescribeStacks",
+                    "opsworks:UpdateApp",
+                    "opsworks:UpdateStack"
+                  ],
+                  "Resource": "*",
+                  "Effect": "Allow"
+                },
+                {
+                  "Action": [
+                    "cloudformation:CreateStack",
+                    "cloudformation:DeleteStack",
+                    "cloudformation:DescribeStacks",
+                    "cloudformation:UpdateStack",
+                    "cloudformation:CreateChangeSet",
+                    "cloudformation:DeleteChangeSet",
+                    "cloudformation:DescribeChangeSet",
+                    "cloudformation:ExecuteChangeSet",
+                    "cloudformation:SetStackPolicy",
+                    "cloudformation:ValidateTemplate"
+                  ],
+                  "Resource": "*",
+                  "Effect": "Allow"
+                },
+                {
+                  "Action": [
+                    "codebuild:CreateReportGroup",
+                    "codebuild:CreateReport",
+                    "codebuild:UpdateReport",
+                    "codebuild:BatchGetBuilds",
+                    "codebuild:BatchGetBuildBatches",
+                    "codebuild:BatchPutTestCases",
+                    "codebuild:BatchPutCodeCoverages",
+                    "codebuild:StartBuild",
+                    "codebuild:StartBuildBatch",
+                    "codebuild:StopBuild",
+                    "codebuild:RetryBuild"
+                  ],
+                  "Resource": "*",
+                  "Effect": "Allow"
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "devicefarm:ListProjects",
+                    "devicefarm:ListDevicePools",
+                    "devicefarm:GetRun",
+                    "devicefarm:GetUpload",
+                    "devicefarm:CreateUpload",
+                    "devicefarm:ScheduleRun"
+                  ],
+                  "Resource": "*"
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "servicecatalog:ListProvisioningArtifacts",
+                    "servicecatalog:CreateProvisioningArtifact",
+                    "servicecatalog:DescribeProvisioningArtifact",
+                    "servicecatalog:DeleteProvisioningArtifact",
+                    "servicecatalog:UpdateProduct"
+                  ],
+                  "Resource": "*"
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": ["cloudformation:ValidateTemplate"],
+                  "Resource": "*"
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "ecr:DescribeImages",
+                    "ecr:BatchCheckLayerAvailability",
+                    "ecr:BatchGetImage",
+                    "ecr:CompleteLayerUpload",
+                    "ecr:GetAuthorizationToken",
+                    "ecr:GetDownloadUrlForLayer",
+                    "ecr:InitiateLayerUpload",
+                    "ecr:PutImage",
+                    "ecr:UploadLayerPart"
+                  ],
+                  "Resource": "*"
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "states:DescribeExecution",
+                    "states:DescribeStateMachine",
+                    "states:StartExecution"
+                  ],
+                  "Resource": "*"
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "appconfig:StartDeployment",
+                    "appconfig:StopDeployment",
+                    "appconfig:GetDeployment"
+                  ],
+                  "Resource": "*"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    }
+  },
+  "Outputs": {
+    "ImageRepositoryURL": {
+      "Value": { "Fn::GetAtt": "ImageRepository.RepositoryUri" }
+    }
+  }
+}
