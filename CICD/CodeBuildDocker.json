@@ -124,7 +124,7 @@
       "Type": "AWS::CodeBuild::Project",
       "Properties": {
         "Name": { "Ref": "Project" },
-        "Description": "Build Docker image from a public GitHub repository and publish to ECR",
+        "Description": "Build Docker image from a public GitHub repository and publish to Elastic Container Registry",
         "ServiceRole": { "Fn::GetAtt": ["CodeBuildServiceRole", "Arn"] },
         "Artifacts": {
           "Type": "no_artifacts"
