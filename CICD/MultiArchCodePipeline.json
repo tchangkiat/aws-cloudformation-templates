@@ -516,10 +516,10 @@
         "RoleArn": { "Fn::GetAtt": ["CodePipelineServiceRole", "Arn"] },
         "Stages": [
           {
-            "Name": "Source",
+            "Name": "Pull-From-Source",
             "Actions": [
               {
-                "Name": "GitHub",
+                "Name": "Source",
                 "ActionTypeId": {
                   "Category": "Source",
                   "Owner": "AWS",
