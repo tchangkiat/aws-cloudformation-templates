@@ -6,7 +6,7 @@
       "ParameterGroups": [
         {
           "Label": { "default": "General Configurations" },
-          "Parameters": ["Project", "Environment", "RepositoryURL"]
+          "Parameters": ["Project", "Environment"]
         },
         {
           "Label": { "default": "CodePipeline Configurations" },
@@ -20,8 +20,7 @@
       "ParameterLabels": {
         "CodePipelineSourceConnectionArn": { "default": "Connection ARN" },
         "CodePipelineSourceRepo": { "default": "Repository" },
-        "CodePipelineSourceBranchName": { "default": "Repository Branch" },
-        "RepositoryURL": { "default": "URL of Code Repository" }
+        "CodePipelineSourceBranchName": { "default": "Repository Branch" }
       }
     }
   },
@@ -49,11 +48,6 @@
       "Type": "String",
       "Default": "Development",
       "Description": "Describe the environment (e.g. development, production)"
-    },
-    "RepositoryURL": {
-      "Type": "String",
-      "Default": "https://github.com/tchangkiat/sample-express-api",
-      "Description": "Enter the URL of the public GitHub repository"
     }
   },
   "Resources": {
@@ -157,7 +151,7 @@
         "Description": "Build Docker x86 image from a public GitHub repository and publish to ECR",
         "ServiceRole": { "Fn::GetAtt": ["CodeBuildServiceRole", "Arn"] },
         "Artifacts": {
-          "Type": "no_artifacts"
+          "Type": "CODEPIPELINE"
         },
         "Environment": {
           "Type": "LINUX_CONTAINER",
@@ -193,9 +187,7 @@
           }
         },
         "Source": {
-          "GitCloneDepth": 1,
-          "Location": { "Ref": "RepositoryURL" },
-          "Type": "GITHUB"
+          "Type": "CODEPIPELINE"
         },
         "TimeoutInMinutes": 10,
         "Tags": [{ "Key": "Environment", "Value": { "Ref": "Environment" } }]
@@ -210,7 +202,7 @@
         "Description": "Build Docker ARM64 image from a public GitHub repository and publish to ECR",
         "ServiceRole": { "Fn::GetAtt": ["CodeBuildServiceRole", "Arn"] },
         "Artifacts": {
-          "Type": "no_artifacts"
+          "Type": "CODEPIPELINE"
         },
         "Environment": {
           "Type": "ARM_CONTAINER",
@@ -246,9 +238,7 @@
           }
         },
         "Source": {
-          "GitCloneDepth": 1,
-          "Location": { "Ref": "RepositoryURL" },
-          "Type": "GITHUB"
+          "Type": "CODEPIPELINE"
         },
         "TimeoutInMinutes": 10,
         "Tags": [{ "Key": "Environment", "Value": { "Ref": "Environment" } }]
@@ -263,7 +253,7 @@
         "Description": "Build Docker manifest and publish to ECR",
         "ServiceRole": { "Fn::GetAtt": ["CodeBuildServiceRole", "Arn"] },
         "Artifacts": {
-          "Type": "no_artifacts"
+          "Type": "CODEPIPELINE"
         },
         "Environment": {
           "Type": "LINUX_CONTAINER",
@@ -300,9 +290,7 @@
         },
         "Source": {
           "BuildSpec": "buildspec-manifest.yml",
-          "GitCloneDepth": 1,
-          "Location": { "Ref": "RepositoryURL" },
-          "Type": "GITHUB"
+          "Type": "CODEPIPELINE"
         },
         "TimeoutInMinutes": 10,
         "Tags": [{ "Key": "Environment", "Value": { "Ref": "Environment" } }]
@@ -524,6 +512,7 @@
     "CodePipeline": {
       "Type": "AWS::CodePipeline::Pipeline",
       "Properties": {
+        "Name": { "Ref": "Project" },
         "RoleArn": { "Fn::GetAtt": ["CodePipelineServiceRole", "Arn"] },
         "Stages": [
           {
