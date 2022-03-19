@@ -27,6 +27,7 @@ Policy Definition:
         "ec2-instance-connect:*",
         "appmesh:*",
         "codebuild:*",
+        "codepipeline:*",
         "ssm:GetParameters",
         "es:*"
       ],
