@@ -13,6 +13,7 @@
           "Parameters": [
             "CodePipelineSourceConnectionArn",
             "CodePipelineSourceRepo",
+            "CodePipelineSourceRepoUrl",
             "CodePipelineSourceBranchName"
           ]
         }
@@ -20,6 +21,7 @@
       "ParameterLabels": {
         "CodePipelineSourceConnectionArn": { "default": "Connection ARN" },
         "CodePipelineSourceRepo": { "default": "Repository" },
+        "CodePipelineSourceRepoUrl": { "default": "Repository URL" },
         "CodePipelineSourceBranchName": { "default": "Repository Branch" }
       }
     }
@@ -33,6 +35,11 @@
       "Type": "String",
       "Default": "tchangkiat/sample-express-api",
       "Description": "Enter the full repository ID (e.g. tchangkiat/sample-express-api)"
+    },
+    "CodePipelineSourceRepoUrl": {
+      "Type": "String",
+      "Default": "https://github.com/tchangkiat/sample-express-api.git",
+      "Description": "Enter the full repository URL"
     },
     "CodePipelineSourceBranchName": {
       "Type": "String",
@@ -177,7 +184,12 @@
             {
               "Name": "IMAGE_TAG",
               "Type": "PLAINTEXT",
-              "Value": "latest"
+              "Value": "amd64-latest"
+            },
+            {
+              "Name": "SOURCE_REPO_URL",
+              "Type": "PLAINTEXT",
+              "Value": { "Ref": "CodePipelineSourceRepoUrl" }
             }
           ]
         },
@@ -229,6 +241,11 @@
               "Name": "IMAGE_TAG",
               "Type": "PLAINTEXT",
               "Value": "arm64-latest"
+            },
+            {
+              "Name": "SOURCE_REPO_URL",
+              "Type": "PLAINTEXT",
+              "Value": { "Ref": "CodePipelineSourceRepoUrl" }
             }
           ]
         },
@@ -279,7 +296,7 @@
             {
               "Name": "IMAGE_TAG",
               "Type": "PLAINTEXT",
-              "Value": "arm64-latest"
+              "Value": "latest"
             }
           ]
         },
