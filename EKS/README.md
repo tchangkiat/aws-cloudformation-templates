@@ -64,22 +64,22 @@ eksctl create iamserviceaccount --namespace appmesh-system --name appmesh-contro
 helm upgrade -i appmesh-controller eks/appmesh-controller --namespace appmesh-system --set region=$AWS_REGION --set serviceAccount.create=false --set serviceAccount.name=appmesh-controller
 
 # Configure 'sampleexpressapi' namespace for mesh
-kubectl apply -f "https://raw.githubusercontent.com/tchangkiat/sample-express-api/master/k8s/eks/appmesh-namespace.yaml"
+kubectl apply -f "https://raw.githubusercontent.com/tchangkiat/sample-express-api/master/eks/appmesh-namespace.yaml"
 
 # Create the mesh
-kubectl apply -f "https://raw.githubusercontent.com/tchangkiat/sample-express-api/master/k8s/eks/appmesh.yaml"
+kubectl apply -f "https://raw.githubusercontent.com/tchangkiat/sample-express-api/master/eks/appmesh.yaml"
 
 # Create the virtual node
-kubectl apply -f "https://raw.githubusercontent.com/tchangkiat/sample-express-api/master/k8s/eks/appmesh-virtualnode.yaml"
+kubectl apply -f "https://raw.githubusercontent.com/tchangkiat/sample-express-api/master/eks/appmesh-virtualnode.yaml"
 
 # Create the virtual router
-kubectl apply -f "https://raw.githubusercontent.com/tchangkiat/sample-express-api/master/k8s/eks/appmesh-virtualrouter.yaml"
+kubectl apply -f "https://raw.githubusercontent.com/tchangkiat/sample-express-api/master/eks/appmesh-virtualrouter.yaml"
 
 # Create the virtual service
-kubectl apply -f "https://raw.githubusercontent.com/tchangkiat/sample-express-api/master/k8s/eks/appmesh-virtualservice.yaml"
+kubectl apply -f "https://raw.githubusercontent.com/tchangkiat/sample-express-api/master/eks/appmesh-virtualservice.yaml"
 
 # Download CloudFormation template to create a policy for proxy authorization for App Mesh injector to add the sidecar containers to any pod deployed with a label specified
-curl https://raw.githubusercontent.com/tchangkiat/sample-express-api/master/k8s/eks/proxy-auth-cf.json -o proxy-auth-cf.json
+curl https://raw.githubusercontent.com/tchangkiat/sample-express-api/master/eks/proxy-auth-cf.json -o proxy-auth-cf.json
 
 # Create a stack with the template above
 aws cloudformation create-stack --stack-name AppMeshProxyAuthPolicy-$AWS_EKS_CLUSTER-sampleexpressapi-mesh --template-body file://proxy-auth-cf.json --parameters ParameterKey=ClusterName,ParameterValue=$AWS_EKS_CLUSTER ParameterKey=MeshName,ParameterValue=sampleexpressapi-mesh --capabilities CAPABILITY_NAMED_IAM
@@ -246,13 +246,13 @@ kubectl delete -f ~/deployment.yaml -n sampleexpressapi
 3. Execute the following commands in the Bastion Host if AWS App Mesh was set up:
 
 ```bash
-kubectl delete -f "https://raw.githubusercontent.com/tchangkiat/sample-express-api/master/k8s/eks/appmesh-virtualservice.yaml"
+kubectl delete -f "https://raw.githubusercontent.com/tchangkiat/sample-express-api/master/eks/appmesh-virtualservice.yaml"
 
-kubectl delete -f "https://raw.githubusercontent.com/tchangkiat/sample-express-api/master/k8s/eks/appmesh-virtualrouter.yaml"
+kubectl delete -f "https://raw.githubusercontent.com/tchangkiat/sample-express-api/master/eks/appmesh-virtualrouter.yaml"
 
-kubectl delete -f "https://raw.githubusercontent.com/tchangkiat/sample-express-api/master/k8s/eks/appmesh-virtualnode.yaml"
+kubectl delete -f "https://raw.githubusercontent.com/tchangkiat/sample-express-api/master/eks/appmesh-virtualnode.yaml"
 
-kubectl delete -f "https://raw.githubusercontent.com/tchangkiat/sample-express-api/master/k8s/eks/appmesh.yaml"
+kubectl delete -f "https://raw.githubusercontent.com/tchangkiat/sample-express-api/master/eks/appmesh.yaml"
 
 helm uninstall appmesh-controller --namespace appmesh-system
 ```
